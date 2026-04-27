@@ -27,6 +27,25 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Japanese typography: phrase-aware line breaks instead of mid-word wraps */
+html[lang="ja"] {
+  word-break: auto-phrase;
+  line-break: strict;
+  overflow-wrap: normal;
+}
+
+html[lang="ja"] h1,
+html[lang="ja"] h2,
+html[lang="ja"] h3,
+html[lang="ja"] p {
+  text-wrap: pretty;
+}
+
+/* Avoid breaking before punctuation like 、。」 */
+html[lang="ja"] {
+  hanging-punctuation: allow-end;
+}
+
 ::selection {
   background: var(--accent);
   color: #04140f;

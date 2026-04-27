@@ -134,7 +134,7 @@ const STRINGS = {
     },
     footer: {
       sourcedFrom: 'Sourced from Collibra · Refreshed daily',
-      internal: 'R&D Data Office · Internal use only',
+      internal: 'DG Japan · Internal use only',
     },
     settings: {
       kicker: 'Configuration',
@@ -390,7 +390,7 @@ const STRINGS = {
     },
     footer: {
       sourcedFrom: 'Collibra より日次同期',
-      internal: 'R&D Data Office · 社内利用のみ',
+      internal: 'DG Japan · 社内利用のみ',
     },
     settings: {
       kicker: '設定',
@@ -547,6 +547,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setLangState('ja');
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
 
   const setLang = (l: Lang) => {
     setLangState(l);

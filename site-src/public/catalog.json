@@ -2,8 +2,8 @@
   "generatedAt": "2026-04-27T08:30:00Z",
   "source": "https://collibra.internal/data-catalog",
   "community": {
-    "id": "com-rd-data-office",
-    "name": "R&D Data Office",
+    "id": "com-dg-japan",
+    "name": "DG Japan",
     "description": "Governed data assets for clinical development, translational research, real-world evidence, pharmacovigilance, and regulatory submissions."
   },
   "domainCount": 10,
