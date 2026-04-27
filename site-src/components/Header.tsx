@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Search, Sun, Moon, Settings, Languages } from 'lucide-react';
+import { Search, Sun, Moon, Settings, LayoutGrid } from 'lucide-react';
 import { SearchPalette, type SearchItem } from './SearchPalette';
 import { useT } from '@/lib/i18n';
 
@@ -104,6 +104,14 @@ export function Header({ searchIndex }: Props) {
               </button>
             </div>
 
+            <Link
+              href="/views/"
+              aria-label={t.views.title}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-2 h-8 text-[11px] font-medium hover:border-mint-400 hover:text-mint-500 transition-colors"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t.views.title}</span>
+            </Link>
             <Link
               href="/settings/"
               aria-label={t.nav.settings}
