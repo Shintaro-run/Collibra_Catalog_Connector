@@ -1,0 +1,48 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Build artifacts
+dist/
+build/
+*.pyc
+__pycache__/
+*.egg-info/
+
+# Personal/Private
+.data/
+gitignore/
+
+# Confidential (CRITICAL - Level 1)
+config.json
+.env
+secrets.json
+*.key
+*.pem
+*.p12
+
+# Generated catalog data (potentially sensitive — pharma metadata)
+data/catalog.json
+data/*.json
+output/
+
+# Site build output (regenerated each run)
+site/
+site-src/.next/
+site-src/out/
+site-src/node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

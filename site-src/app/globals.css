@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fafafa;
+  --bg-elev: #ffffff;
+  --fg: #0f172a;
+  --fg-muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #14b8a6;
+}
+
+.dark {
+  --bg: #050507;
+  --bg-elev: #0c1117;
+  --fg: #e6edf3;
+  --fg-muted: #7d8590;
+  --border: #1f2937;
+  --accent: #2dd4bf;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: #04140f;
+}
+
+.glass {
+  background: color-mix(in oklab, var(--bg-elev) 70%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+
+.scroll-fade::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-fade::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+.scroll-fade::-webkit-scrollbar-thumb:hover { background: var(--fg-muted); }
+
+.region {
+  fill: color-mix(in oklab, var(--accent) 10%, transparent);
+  stroke: color-mix(in oklab, var(--accent) 50%, transparent);
+  stroke-width: 1;
+  transition: fill 200ms ease, stroke 200ms ease, filter 200ms ease;
+  cursor: pointer;
+}
+.region:hover {
+  fill: color-mix(in oklab, var(--accent) 30%, transparent);
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 12px color-mix(in oklab, var(--accent) 60%, transparent));
+}
+.region.active {
+  fill: color-mix(in oklab, var(--accent) 45%, transparent);
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 14px var(--accent));
+}
+.region.dim { opacity: 0.25; }

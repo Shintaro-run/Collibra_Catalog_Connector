@@ -1,0 +1,21 @@
+{
+  "_comment": "Collibra → Catalog 同期設定。selected_domains が空配列のときは全ドメインを取得。",
+  "selected_domains": [],
+  "selected_domain_names": [
+    "Respiratory",
+    "Oncology",
+    "Clinical Trials"
+  ],
+  "asset_types": [
+    "Table",
+    "Column",
+    "Database",
+    "Business Term"
+  ],
+  "include_terms": true,
+  "include_relations": true,
+  "include_lineage": false,
+  "max_assets_per_domain": 500,
+  "page_size": 100,
+  "output_path": "data/catalog.json"
+}

@@ -1,0 +1,2211 @@
+{
+  "generatedAt": "2026-04-27T08:30:00Z",
+  "source": "https://collibra.internal/data-catalog",
+  "community": {
+    "id": "com-rd-data-office",
+    "name": "R&D Data Office",
+    "description": "Governed data assets for clinical development, translational research, real-world evidence, pharmacovigilance, and regulatory submissions."
+  },
+  "domainCount": 10,
+  "assetCount": 56,
+  "domains": [
+    {
+      "id": "dom-respiratory",
+      "name": "Respiratory",
+      "slug": "respiratory",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "chest-left",
+        "chest-right"
+      ],
+      "description": "Pulmonary function studies, inhaled therapeutics, asthma and COPD trial cohorts. Source data harmonized to SDTM 3.4 with FEV1 / FVC / PEF endpoints maintained as ADaM analysis flows.",
+      "steward": "Hiroshi Tanaka",
+      "technicalSteward": "Hannah Klein",
+      "color": "#22d3ee",
+      "assetCount": 6,
+      "assets": [
+        {
+          "id": "ast-resp-001",
+          "name": "rave_eg_spirometry",
+          "displayName": "Spirometry Measurements",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "FEV1, FVC, FEV1/FVC ratio and PEF values collected via ATS/ERS-compliant spirometers across all active respiratory studies. Source-of-truth table joined to SDTM EG via USUBJID and EGSEQ.",
+          "domainId": "dom-respiratory",
+          "sourceSystem": "Medidata Rave Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "respiratory_curated",
+          "tableName": "rave_eg_spirometry",
+          "cdiscDomain": "EG",
+          "standard": "SDTM IG 3.4",
+          "steward": "Hiroshi Tanaka",
+          "owner": "Maya Rodriguez",
+          "smes": [
+            "Dr. Linda Akande",
+            "Hannah Klein"
+          ],
+          "tags": [
+            "clinical",
+            "pulmonary",
+            "core",
+            "edc"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3",
+            "EU CTR"
+          ],
+          "qualityScore": 94,
+          "qualityBreakdown": {
+            "completeness": 96,
+            "freshness": 92,
+            "validity": 95,
+            "lineage": 93
+          },
+          "freshness": "2026-04-26T22:10:00Z",
+          "rowCount": 184302,
+          "createdOn": "2024-02-14T09:00:00Z",
+          "lastModifiedOn": "2026-04-26T22:10:00Z",
+          "upstreamAssetIds": [],
+          "columns": [
+            {
+              "name": "studyid",
+              "dataType": "VARCHAR(20)",
+              "description": "Study identifier (PROTOCOL-2901, RESP-3104 etc.)",
+              "cdiscVariable": "STUDYID"
+            },
+            {
+              "name": "usubjid",
+              "dataType": "VARCHAR(40)",
+              "description": "Unique subject identifier across studies",
+              "cdiscVariable": "USUBJID"
+            },
+            {
+              "name": "egtestcd",
+              "dataType": "VARCHAR(8)",
+              "description": "Test short name (FEV1, FVC, PEF, FEV1FVC)",
+              "cdiscVariable": "EGTESTCD"
+            },
+            {
+              "name": "egtest",
+              "dataType": "VARCHAR(40)",
+              "description": "Test long name",
+              "cdiscVariable": "EGTEST"
+            },
+            {
+              "name": "egstresn",
+              "dataType": "NUMERIC(8,3)",
+              "description": "Result in standard units (L for FEV1/FVC, L/min for PEF)",
+              "cdiscVariable": "EGSTRESN"
+            },
+            {
+              "name": "egstresu",
+              "dataType": "VARCHAR(20)",
+              "description": "Standard units"
+            },
+            {
+              "name": "egdtc",
+              "dataType": "TIMESTAMP",
+              "description": "Date/time of measurement",
+              "cdiscVariable": "EGDTC"
+            },
+            {
+              "name": "device_serial",
+              "dataType": "VARCHAR(64)",
+              "description": "Spirometer serial (vendor: Vitalograph, MGC Diagnostics)"
+            }
+          ],
+          "displayNameJa": "スパイロメトリー測定",
+          "descriptionJa": "ATS/ERS 準拠スパイロメーターから収集された FEV1、FVC、FEV1/FVC 比、PEF 値。SDTM EG への USUBJID/EGSEQ 結合元となる正本テーブル。"
+        },
+        {
+          "id": "ast-resp-002",
+          "name": "vault_inhaler_adherence",
+          "displayName": "Inhaler Adherence Telemetry",
+          "type": "Table",
+          "status": "Approved",
+          "certified": false,
+          "description": "Daily inhaler usage events streamed from connected device studies (Propeller Health and Adherium Hailie) under ASTHMA-301 and COPD-204 protocols. Used for adherence-stratified efficacy analyses.",
+          "domainId": "dom-respiratory",
+          "sourceSystem": "Veeva Vault Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "device_telemetry",
+          "tableName": "vault_inhaler_adherence",
+          "steward": "Maya Rodriguez",
+          "owner": "Hiroshi Tanaka",
+          "tags": [
+            "device",
+            "real-world-evidence",
+            "adherence"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "GDPR"
+          ],
+          "qualityScore": 81,
+          "qualityBreakdown": {
+            "completeness": 76,
+            "freshness": 95,
+            "validity": 82,
+            "lineage": 71
+          },
+          "freshness": "2026-04-27T05:00:00Z",
+          "rowCount": 2904118,
+          "createdOn": "2024-09-02T11:00:00Z",
+          "lastModifiedOn": "2026-04-27T05:00:00Z",
+          "displayNameJa": "吸入器アドヒアランス・テレメトリ",
+          "descriptionJa": "コネクテッドデバイス (Propeller Health, Adherium Hailie) からの日次吸入イベント。ASTHMA-301・COPD-204 プロトコル下で取得。アドヒアランス層別解析に使用。"
+        },
+        {
+          "id": "ast-resp-003",
+          "name": "term_copd_severity",
+          "displayName": "COPD Severity (GOLD)",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Standardized GOLD 2024 staging classification for COPD severity (GOLD 1-4 by post-bronchodilator FEV1% predicted). Used as stratification variable across all COPD studies.",
+          "domainId": "dom-respiratory",
+          "steward": "Dr. Linda Akande",
+          "smes": [
+            "Dr. Hiroshi Tanaka"
+          ],
+          "tags": [
+            "glossary",
+            "definition",
+            "copd",
+            "stratification"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH E9"
+          ],
+          "qualityScore": 100,
+          "freshness": "2026-02-11T00:00:00Z",
+          "createdOn": "2023-03-15T00:00:00Z",
+          "lastModifiedOn": "2026-02-11T00:00:00Z",
+          "displayNameJa": "COPD 重症度 (GOLD)",
+          "descriptionJa": "GOLD 2024 ステージング (FEV1% 予測値による GOLD 1〜4)。全 COPD 試験で層別変数として使用。"
+        },
+        {
+          "id": "ast-resp-004",
+          "name": "rpt_asthma_p3_efficacy",
+          "displayName": "Asthma Phase III Efficacy Summary",
+          "type": "Report",
+          "status": "Under Review",
+          "certified": false,
+          "description": "Pre-computed efficacy summary for the ASTHMA-301 Phase III cohort: ACQ-7 score, exacerbation rate, rescue medication use. Refreshed weekly via SAS pipeline.",
+          "domainId": "dom-respiratory",
+          "sourceSystem": "SAS Drug Development",
+          "steward": "Hiroshi Tanaka",
+          "smes": [
+            "Dr. Asha Iyer"
+          ],
+          "tags": [
+            "report",
+            "phase-3",
+            "efficacy"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH E9",
+            "ICH E6 R3"
+          ],
+          "qualityScore": 88,
+          "freshness": "2026-04-21T03:00:00Z",
+          "createdOn": "2025-08-12T00:00:00Z",
+          "lastModifiedOn": "2026-04-21T03:00:00Z",
+          "upstreamAssetIds": [
+            "ast-resp-001",
+            "ast-resp-005"
+          ],
+          "displayNameJa": "喘息 第III相 有効性サマリー",
+          "descriptionJa": "ASTHMA-301 第III相コホートの事前算出有効性サマリー: ACQ-7 スコア、増悪率、レスキュー薬使用。SAS パイプラインで週次更新。"
+        },
+        {
+          "id": "ast-resp-005",
+          "name": "rave_qs_asthma_pro",
+          "displayName": "Patient-Reported Outcomes (Asthma)",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "ACQ-7, AQLQ(S), and PROMIS questionnaire responses for respiratory program participants. Captured via tablet at site visits and ePRO at home.",
+          "domainId": "dom-respiratory",
+          "sourceSystem": "Medidata Rave Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "respiratory_curated",
+          "tableName": "rave_qs_asthma_pro",
+          "cdiscDomain": "QS",
+          "standard": "SDTM IG 3.4",
+          "steward": "Maya Rodriguez",
+          "owner": "Hiroshi Tanaka",
+          "tags": [
+            "pro",
+            "questionnaire",
+            "epro"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "GDPR"
+          ],
+          "qualityScore": 76,
+          "qualityBreakdown": {
+            "completeness": 68,
+            "freshness": 88,
+            "validity": 80,
+            "lineage": 70
+          },
+          "freshness": "2026-04-25T14:30:00Z",
+          "rowCount": 56021,
+          "displayNameJa": "患者報告アウトカム (喘息)",
+          "descriptionJa": "ACQ-7、AQLQ(S)、PROMIS の質問票回答。サイト訪問時タブレットおよび在宅 ePRO で取得。"
+        },
+        {
+          "id": "ast-resp-006",
+          "name": "img_pulm_hrct_features",
+          "displayName": "HRCT Pulmonary Quantitative Features",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Quantitative HRCT-derived features (LAA-950%, Pi10, airway wall thickness) processed by VIDA Insights at the imaging core lab.",
+          "domainId": "dom-respiratory",
+          "sourceSystem": "CDP Imaging Repository",
+          "database": "databricks_imaging",
+          "schema": "thoracic",
+          "tableName": "img_pulm_hrct_features",
+          "steward": "Dr. Aram Petrosyan",
+          "owner": "Hiroshi Tanaka",
+          "tags": [
+            "imaging",
+            "hrct",
+            "core-lab"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "HIPAA"
+          ],
+          "qualityScore": 90,
+          "freshness": "2026-04-20T08:00:00Z",
+          "rowCount": 12544,
+          "displayNameJa": "HRCT 肺定量画像特徴",
+          "descriptionJa": "VIDA Insights による HRCT 由来の定量特徴量 (LAA-950%, Pi10, 気道壁厚) を画像中央ラボで処理。"
+        }
+      ],
+      "nameJa": "呼吸器",
+      "descriptionJa": "肺機能試験、吸入製剤、喘息・COPD治験コホート。SDTM 3.4 に準拠した FEV1 / FVC / PEF エンドポイントを ADaM 解析パイプラインで継続維持。"
+    },
+    {
+      "id": "dom-cardiology",
+      "name": "Cardiology",
+      "slug": "cardiology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "chest-left"
+      ],
+      "description": "Cardiovascular outcomes trials, heart failure programs, lipid management studies, and CV biomarker development.",
+      "steward": "Dr. Elena Marchetti",
+      "technicalSteward": "Hannah Klein",
+      "color": "#f43f5e",
+      "assetCount": 6,
+      "assets": [
+        {
+          "id": "ast-card-001",
+          "name": "core_eg_ecg_waveforms",
+          "displayName": "12-Lead ECG Waveforms",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Twelve-lead ECG waveform metadata and machine-overread annotations from the central core lab (Banook Group). Includes QT/QTcF, PR, QRS intervals at scheduled timepoints.",
+          "domainId": "dom-cardiology",
+          "sourceSystem": "ERT EXPERT",
+          "database": "snowflake_clinical_lake",
+          "schema": "cardiology_curated",
+          "tableName": "core_eg_ecg_waveforms",
+          "cdiscDomain": "EG",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Elena Marchetti",
+          "owner": "Naoko Sato",
+          "tags": [
+            "ecg",
+            "core-lab",
+            "qt"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E14"
+          ],
+          "qualityScore": 92,
+          "qualityBreakdown": {
+            "completeness": 94,
+            "freshness": 90,
+            "validity": 95,
+            "lineage": 89
+          },
+          "freshness": "2026-04-26T18:42:00Z",
+          "rowCount": 410882,
+          "displayNameJa": "12誘導 ECG 波形",
+          "descriptionJa": "Banook Group 中央ラボからの 12誘導 ECG 波形メタデータと機械再読所見。スケジュール時点での QT/QTcF、PR、QRS 間隔を含む。"
+        },
+        {
+          "id": "ast-card-002",
+          "name": "lab_lb_lipid_panel",
+          "displayName": "Lipid Panel (Central Lab)",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Total cholesterol, LDL-C (calculated and direct), HDL-C, triglycerides from Q² Solutions central laboratory across cardiovascular studies.",
+          "domainId": "dom-cardiology",
+          "sourceSystem": "Q² Solutions LIMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "cardiology_curated",
+          "tableName": "lab_lb_lipid_panel",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Naoko Sato",
+          "owner": "Dr. Elena Marchetti",
+          "tags": [
+            "lab",
+            "lipids",
+            "central"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3"
+          ],
+          "qualityScore": 96,
+          "freshness": "2026-04-27T01:00:00Z",
+          "rowCount": 78441,
+          "displayNameJa": "脂質パネル (中央ラボ)",
+          "descriptionJa": "Q² Solutions 中央ラボからの総コレステロール、LDL-C (計算式・直接法)、HDL-C、トリグリセライド。"
+        },
+        {
+          "id": "ast-card-003",
+          "name": "term_hf_hospitalization",
+          "displayName": "Heart Failure Hospitalization (Adjudicated)",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Composite definition of adjudicated heart failure hospitalization endpoint per ESC 2023 / ACC/AHA criteria. Used across CV outcomes trials and aligned with FDA endpoint guidance.",
+          "domainId": "dom-cardiology",
+          "steward": "Dr. Elena Marchetti",
+          "smes": [
+            "Dr. Linda Akande"
+          ],
+          "tags": [
+            "glossary",
+            "endpoint",
+            "adjudicated"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH E9",
+            "FDA"
+          ],
+          "qualityScore": 100,
+          "freshness": "2026-01-08T00:00:00Z",
+          "createdOn": "2022-11-04T00:00:00Z",
+          "displayNameJa": "心不全入院 (アジュディケート済)",
+          "descriptionJa": "ESC 2023 / ACC/AHA 基準に基づくアジュディケート済心不全入院エンドポイントの複合定義。CV アウトカム試験で使用、FDA エンドポイントガイダンスに整合。"
+        },
+        {
+          "id": "ast-card-004",
+          "name": "rwd_bp_home_monitoring",
+          "displayName": "Home BP Monitoring (RWD)",
+          "type": "Table",
+          "status": "Under Review",
+          "certified": false,
+          "description": "Home BP cuff readings ingested from connected devices (Omron HEM-9210T, A&D Medical) for hypertension RWE programs in the J-HOMECARE registry.",
+          "domainId": "dom-cardiology",
+          "sourceSystem": "Veeva Vault Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "rwe",
+          "tableName": "rwd_bp_home_monitoring",
+          "steward": "Naoko Sato",
+          "owner": "Maya Rodriguez",
+          "tags": [
+            "rwe",
+            "device",
+            "hypertension"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": false,
+          "regulatoryFrameworks": [
+            "GDPR",
+            "APPI"
+          ],
+          "qualityScore": 79,
+          "qualityBreakdown": {
+            "completeness": 70,
+            "freshness": 96,
+            "validity": 78,
+            "lineage": 72
+          },
+          "freshness": "2026-04-27T06:15:00Z",
+          "rowCount": 6028174,
+          "displayNameJa": "在宅 BP モニタリング (RWD)",
+          "descriptionJa": "コネクテッドデバイス (Omron HEM-9210T、A&D Medical) からの在宅 BP 測定値。J-HOMECARE レジストリ等の高血圧 RWE プログラムで使用。"
+        },
+        {
+          "id": "ast-card-005",
+          "name": "bmkr_cardiac_panel",
+          "displayName": "Cardiac Biomarker Panel",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "hs-Troponin I, NT-proBNP, hs-CRP, ST2 measurements from central biomarker lab. Linked to enrolled CV outcomes trial cohorts.",
+          "domainId": "dom-cardiology",
+          "sourceSystem": "LabCorp Central",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_cardiac_panel",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Elena Marchetti",
+          "tags": [
+            "biomarker",
+            "lab"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 91,
+          "freshness": "2026-04-25T22:00:00Z",
+          "rowCount": 91230,
+          "displayNameJa": "心血管バイオマーカーパネル",
+          "descriptionJa": "高感度トロポニン I、NT-proBNP、hs-CRP、ST2 の中央バイオマーカーラボ測定値。CV アウトカム試験コホートに紐付け。"
+        },
+        {
+          "id": "ast-card-006",
+          "name": "adam_adtte_cv_outcomes",
+          "displayName": "ADaM ADTTE — CV Outcomes",
+          "type": "Data Set",
+          "status": "Approved",
+          "certified": true,
+          "description": "Time-to-event analysis dataset for the CV-OUTCOMES-401 trial primary endpoint (3-point MACE). Conforms to ADaM IG 1.3 with PARAM/PARAMCD structure.",
+          "domainId": "dom-cardiology",
+          "sourceSystem": "SAS Drug Development",
+          "database": "snowflake_analysis",
+          "schema": "adam",
+          "tableName": "adam_adtte_cv_outcomes",
+          "standard": "ADaM IG 1.3",
+          "steward": "Dr. Asha Iyer",
+          "owner": "Dr. Elena Marchetti",
+          "tags": [
+            "adam",
+            "tte",
+            "primary-endpoint"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E9",
+            "ICH E6 R3"
+          ],
+          "qualityScore": 95,
+          "freshness": "2026-04-22T19:00:00Z",
+          "rowCount": 18402,
+          "upstreamAssetIds": [
+            "ast-card-001",
+            "ast-card-005"
+          ],
+          "displayNameJa": "ADaM ADTTE — CV アウトカム",
+          "descriptionJa": "CV-OUTCOMES-401 試験の主要エンドポイント (3-point MACE) 用 Time-to-Event 解析データセット。ADaM IG 1.3 PARAM/PARAMCD 準拠。"
+        }
+      ],
+      "nameJa": "循環器",
+      "descriptionJa": "心血管アウトカム試験、心不全プログラム、脂質管理試験、循環器バイオマーカー開発。"
+    },
+    {
+      "id": "dom-neurology",
+      "name": "Neurology",
+      "slug": "neurology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "head"
+      ],
+      "description": "Neurodegenerative disease cohorts (Alzheimer's, Parkinson's), epilepsy, multiple sclerosis. CSF and imaging biomarker programs aligned with ADNI and PPMI standards.",
+      "steward": "Dr. Sven Halvorsen",
+      "color": "#a855f7",
+      "assetCount": 5,
+      "assets": [
+        {
+          "id": "ast-neuro-001",
+          "name": "rave_qs_mmse",
+          "displayName": "MMSE Cognitive Assessment",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Mini-Mental State Examination (MMSE-2) scores collected at scheduled visits in Alzheimer's disease cohorts (AD-EARLY-201 and MCI-302).",
+          "domainId": "dom-neurology",
+          "sourceSystem": "Medidata Rave Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "neurology_curated",
+          "tableName": "rave_qs_mmse",
+          "cdiscDomain": "QS",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Sven Halvorsen",
+          "owner": "Maya Rodriguez",
+          "tags": [
+            "cognitive",
+            "assessment",
+            "alzheimers"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "GDPR",
+            "HIPAA"
+          ],
+          "qualityScore": 95,
+          "freshness": "2026-04-23T11:00:00Z",
+          "rowCount": 24108,
+          "displayNameJa": "MMSE 認知機能評価",
+          "descriptionJa": "AD-EARLY-201 および MCI-302 のアルツハイマー病コホートで定期訪問時に取得した MMSE-2 スコア。"
+        },
+        {
+          "id": "ast-neuro-002",
+          "name": "bmkr_csf_ad_panel",
+          "displayName": "CSF Alzheimer's Biomarker Panel",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Cerebrospinal fluid biomarkers (Aβ42, Aβ40, t-tau, p-tau181, p-tau217) measured on Roche Elecsys and Lumipulse platforms. Aligned with NIA-AA 2024 framework.",
+          "domainId": "dom-neurology",
+          "sourceSystem": "Roche Elecsys",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_csf_ad_panel",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Sven Halvorsen",
+          "owner": "Naoko Sato",
+          "tags": [
+            "biomarker",
+            "csf",
+            "alzheimers"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "GDPR"
+          ],
+          "qualityScore": 87,
+          "qualityBreakdown": {
+            "completeness": 84,
+            "freshness": 86,
+            "validity": 91,
+            "lineage": 87
+          },
+          "freshness": "2026-04-19T14:20:00Z",
+          "rowCount": 8412,
+          "displayNameJa": "CSF アルツハイマーバイオマーカーパネル",
+          "descriptionJa": "Roche Elecsys および Lumipulse プラットフォームによる髄液 (CSF) バイオマーカー (Aβ42、Aβ40、t-tau、p-tau181、p-tau217)。NIA-AA 2024 フレームワークに整合。"
+        },
+        {
+          "id": "ast-neuro-003",
+          "name": "img_brain_volumetrics",
+          "displayName": "Brain Volumetric Features (FreeSurfer)",
+          "type": "Table",
+          "status": "Approved",
+          "certified": false,
+          "description": "Hippocampal subfield volumes and whole-brain volumetric measurements derived from the FreeSurfer 7.4 pipeline. Includes Boundary Shift Integral (BSI) for longitudinal change.",
+          "domainId": "dom-neurology",
+          "sourceSystem": "CDP Imaging Repository",
+          "database": "databricks_imaging",
+          "schema": "brain",
+          "tableName": "img_brain_volumetrics",
+          "steward": "Dr. Aram Petrosyan",
+          "owner": "Dr. Sven Halvorsen",
+          "tags": [
+            "imaging",
+            "mri",
+            "volumetrics"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": false,
+          "regulatoryFrameworks": [
+            "HIPAA",
+            "GDPR"
+          ],
+          "qualityScore": 89,
+          "freshness": "2026-04-22T07:00:00Z",
+          "rowCount": 31204,
+          "displayNameJa": "脳容積測定 (FreeSurfer)",
+          "descriptionJa": "FreeSurfer 7.4 パイプラインによる海馬部分容積および全脳容積測定。経時変化評価のための Boundary Shift Integral (BSI) を含む。"
+        },
+        {
+          "id": "ast-neuro-004",
+          "name": "epro_seizure_diary",
+          "displayName": "Epilepsy Seizure Diary (ePRO)",
+          "type": "Table",
+          "status": "Under Review",
+          "certified": false,
+          "description": "Patient-reported seizure events with ILAE 2017 type classification and trigger annotations. Captured via THREAD eDiary in EPILEPSY-203 study.",
+          "domainId": "dom-neurology",
+          "sourceSystem": "THREAD eDiary",
+          "database": "snowflake_clinical_lake",
+          "schema": "neurology_curated",
+          "tableName": "epro_seizure_diary",
+          "steward": "Maya Rodriguez",
+          "owner": "Dr. Sven Halvorsen",
+          "tags": [
+            "epro",
+            "epilepsy",
+            "diary"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "GDPR"
+          ],
+          "qualityScore": 73,
+          "qualityBreakdown": {
+            "completeness": 64,
+            "freshness": 92,
+            "validity": 75,
+            "lineage": 60
+          },
+          "freshness": "2026-04-26T09:11:00Z",
+          "rowCount": 142889,
+          "displayNameJa": "てんかん発作日誌 (ePRO)",
+          "descriptionJa": "EPILEPSY-203 試験で THREAD eDiary により取得された ILAE 2017 分類による発作タイプ・トリガー注釈付き患者報告イベント。"
+        },
+        {
+          "id": "ast-neuro-005",
+          "name": "term_amyloid_status",
+          "displayName": "Amyloid Status (NIA-AA)",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Amyloid positivity definition per NIA-AA 2024 ATN framework. Source can be CSF Aβ42/40 ratio or amyloid PET (Centiloid ≥ 24).",
+          "domainId": "dom-neurology",
+          "steward": "Dr. Linda Akande",
+          "smes": [
+            "Dr. Sven Halvorsen"
+          ],
+          "tags": [
+            "glossary",
+            "biomarker",
+            "alzheimers"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH E9"
+          ],
+          "qualityScore": 100,
+          "freshness": "2025-12-19T00:00:00Z",
+          "displayNameJa": "アミロイド陽性 (NIA-AA)",
+          "descriptionJa": "NIA-AA 2024 ATN フレームワークに基づくアミロイド陽性定義。ソースは CSF Aβ42/40 比、またはアミロイド PET (Centiloid ≥ 24)。"
+        }
+      ],
+      "nameJa": "神経",
+      "descriptionJa": "神経変性疾患 (アルツハイマー病、パーキンソン病) コホート、てんかん、多発性硬化症。CSF・画像バイオマーカープログラム (ADNI / PPMI 準拠)。"
+    },
+    {
+      "id": "dom-hepatology",
+      "name": "Hepatology",
+      "slug": "hepatology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "abdomen-upper"
+      ],
+      "description": "MASH (formerly NASH) program, viral hepatitis, drug-induced liver injury monitoring. Integrated FibroScan, biopsy, and serum biomarker datasets.",
+      "steward": "Dr. Jihoon Park",
+      "color": "#84cc16",
+      "assetCount": 5,
+      "assets": [
+        {
+          "id": "ast-hep-001",
+          "name": "lab_lb_liver_function",
+          "displayName": "Liver Function Tests",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "ALT, AST, ALP, GGT, total/direct bilirubin, albumin, INR from central laboratory. Normalized to ULN for Hy's law screening.",
+          "domainId": "dom-hepatology",
+          "sourceSystem": "Q² Solutions LIMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "hepatology_curated",
+          "tableName": "lab_lb_liver_function",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Naoko Sato",
+          "owner": "Dr. Jihoon Park",
+          "tags": [
+            "lab",
+            "lft",
+            "safety"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E2A"
+          ],
+          "qualityScore": 97,
+          "freshness": "2026-04-27T02:30:00Z",
+          "rowCount": 158220,
+          "displayNameJa": "肝機能検査",
+          "descriptionJa": "中央ラボの ALT、AST、ALP、GGT、総/直接ビリルビン、アルブミン、INR。Hy's law スクリーニングのため ULN で正規化。"
+        },
+        {
+          "id": "ast-hep-002",
+          "name": "device_fibroscan",
+          "displayName": "FibroScan Liver Stiffness",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Liver stiffness (kPa, M and XL probe) and CAP measurements from Echosens FibroScan 530/630 devices used in MASH-301 program.",
+          "domainId": "dom-hepatology",
+          "sourceSystem": "Echosens FibroScan",
+          "database": "snowflake_clinical_lake",
+          "schema": "device_telemetry",
+          "tableName": "device_fibroscan",
+          "steward": "Dr. Jihoon Park",
+          "tags": [
+            "device",
+            "mash",
+            "fibrosis"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 88,
+          "freshness": "2026-04-24T13:45:00Z",
+          "rowCount": 14290,
+          "displayNameJa": "FibroScan 肝硬度",
+          "descriptionJa": "MASH-301 プログラムで使用される Echosens FibroScan 530/630 デバイスからの肝硬度 (kPa, M/XL プローブ) および CAP 測定値。"
+        },
+        {
+          "id": "ast-hep-003",
+          "name": "path_liver_biopsy",
+          "displayName": "Liver Biopsy Pathology",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "NAS (NAFLD Activity Score) and Kleiner-Brunt fibrosis stage from central pathology read for MASH studies. Includes panel-of-three pathologist consensus where available.",
+          "domainId": "dom-hepatology",
+          "sourceSystem": "PathAI Central Read",
+          "database": "snowflake_clinical_lake",
+          "schema": "pathology",
+          "tableName": "path_liver_biopsy",
+          "steward": "Dr. Jihoon Park",
+          "owner": "Dr. Aram Petrosyan",
+          "tags": [
+            "pathology",
+            "biopsy",
+            "mash"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "HIPAA"
+          ],
+          "qualityScore": 92,
+          "freshness": "2026-04-15T10:00:00Z",
+          "rowCount": 4118,
+          "displayNameJa": "肝生検病理",
+          "descriptionJa": "MASH 試験における中央病理判読からの NAS (NAFLD Activity Score) と Kleiner-Brunt 線維化ステージ。可能な場合は3名病理医パネルのコンセンサスを含む。"
+        },
+        {
+          "id": "ast-hep-004",
+          "name": "term_hys_law",
+          "displayName": "Hy's Law Case",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Operationalized Hy's law definition: ALT or AST ≥ 3×ULN with total bilirubin ≥ 2×ULN and no other cause. Trigger for safety review per FDA DILI guidance.",
+          "domainId": "dom-hepatology",
+          "steward": "Dr. Jihoon Park",
+          "smes": [
+            "Yuki Nakamura"
+          ],
+          "tags": [
+            "glossary",
+            "safety",
+            "dili"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "FDA",
+            "ICH E2D"
+          ],
+          "qualityScore": 100,
+          "freshness": "2025-11-04T00:00:00Z",
+          "displayNameJa": "Hy's Law 該当例",
+          "descriptionJa": "Hy's law の運用定義: ALT または AST ≥ 3×ULN かつ総ビリルビン ≥ 2×ULN かつ他原因なし。FDA DILI ガイダンスに基づく安全性レビュートリガー。"
+        },
+        {
+          "id": "ast-hep-005",
+          "name": "bmkr_mash_serum",
+          "displayName": "MASH Serum Biomarker Panel",
+          "type": "Table",
+          "status": "Candidate",
+          "certified": false,
+          "description": "Pro-C3, ELF score, FIB-4, NIS-4 serum biomarkers under exploratory evaluation as non-invasive MASH endpoints.",
+          "domainId": "dom-hepatology",
+          "sourceSystem": "Siemens Atellica",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_mash_serum",
+          "steward": "Dr. Jihoon Park",
+          "tags": [
+            "biomarker",
+            "exploratory",
+            "mash"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": false,
+          "qualityScore": 70,
+          "qualityBreakdown": {
+            "completeness": 60,
+            "freshness": 80,
+            "validity": 78,
+            "lineage": 60
+          },
+          "freshness": "2026-03-30T00:00:00Z",
+          "rowCount": 3290,
+          "displayNameJa": "MASH 血清バイオマーカーパネル",
+          "descriptionJa": "Pro-C3、ELF スコア、FIB-4、NIS-4 の血清バイオマーカー。非侵襲的 MASH エンドポイント候補として探索評価中。"
+        }
+      ],
+      "nameJa": "肝臓",
+      "descriptionJa": "MASH (旧 NASH) プログラム、ウイルス性肝炎、薬剤性肝障害モニタリング。FibroScan・生検・血清バイオマーカーを統合。"
+    },
+    {
+      "id": "dom-nephrology",
+      "name": "Nephrology",
+      "slug": "nephrology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "abdomen-lower"
+      ],
+      "description": "Chronic kidney disease progression, diabetic nephropathy, IgA nephropathy, ESRD/dialysis cohorts.",
+      "steward": "Dr. Adaeze Okeke",
+      "color": "#fb923c",
+      "assetCount": 4,
+      "assets": [
+        {
+          "id": "ast-nephro-001",
+          "name": "lab_lb_renal_panel",
+          "displayName": "Renal Function Panel",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Serum creatinine, eGFR (CKD-EPI 2021 race-free equation), BUN, electrolytes, cystatin C from central lab.",
+          "domainId": "dom-nephrology",
+          "sourceSystem": "Q² Solutions LIMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "nephrology_curated",
+          "tableName": "lab_lb_renal_panel",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Naoko Sato",
+          "owner": "Dr. Adaeze Okeke",
+          "tags": [
+            "lab",
+            "renal",
+            "ckd-epi"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 96,
+          "freshness": "2026-04-27T01:30:00Z",
+          "rowCount": 201405,
+          "displayNameJa": "腎機能パネル",
+          "descriptionJa": "中央ラボの血清クレアチニン、eGFR (CKD-EPI 2021 race-free 式)、BUN、電解質、シスタチン C。"
+        },
+        {
+          "id": "ast-nephro-002",
+          "name": "lab_lb_uacr",
+          "displayName": "Urine Albumin-Creatinine Ratio",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "UACR (mg/g) from spot urine. Primary surrogate endpoint in CKD progression studies (CKD-OUTCOMES-401).",
+          "domainId": "dom-nephrology",
+          "sourceSystem": "Q² Solutions LIMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "nephrology_curated",
+          "tableName": "lab_lb_uacr",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Adaeze Okeke",
+          "tags": [
+            "lab",
+            "endpoint",
+            "ckd"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E9"
+          ],
+          "qualityScore": 93,
+          "freshness": "2026-04-26T19:00:00Z",
+          "rowCount": 88207,
+          "displayNameJa": "尿アルブミン/クレアチニン比",
+          "descriptionJa": "随時尿からの UACR (mg/g)。CKD 進行試験 (CKD-OUTCOMES-401) における主要代用エンドポイント。"
+        },
+        {
+          "id": "ast-nephro-003",
+          "name": "rave_pr_dialysis",
+          "displayName": "Dialysis Treatment Log",
+          "type": "Table",
+          "status": "Approved",
+          "certified": false,
+          "description": "Hemodialysis and peritoneal dialysis session metadata for ESRD subgroup analysis. Includes Kt/V and ultrafiltration volumes.",
+          "domainId": "dom-nephrology",
+          "sourceSystem": "Medidata Rave Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "nephrology_curated",
+          "tableName": "rave_pr_dialysis",
+          "cdiscDomain": "PR",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Adaeze Okeke",
+          "tags": [
+            "esrd",
+            "treatment",
+            "dialysis"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 80,
+          "freshness": "2026-04-22T06:00:00Z",
+          "rowCount": 38091,
+          "displayNameJa": "透析治療ログ",
+          "descriptionJa": "ESRD サブグループ解析のための血液透析・腹膜透析セッションメタデータ。Kt/V および除水量を含む。"
+        },
+        {
+          "id": "ast-nephro-004",
+          "name": "term_kdigo_ckd_stage",
+          "displayName": "CKD Stage (KDIGO 2024)",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "KDIGO 2024 chronic kidney disease classification by GFR category (G1–G5) and albuminuria category (A1–A3).",
+          "domainId": "dom-nephrology",
+          "steward": "Dr. Linda Akande",
+          "smes": [
+            "Dr. Adaeze Okeke"
+          ],
+          "tags": [
+            "glossary",
+            "definition",
+            "kdigo"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "qualityScore": 100,
+          "freshness": "2026-01-20T00:00:00Z",
+          "displayNameJa": "CKD ステージ (KDIGO 2024)",
+          "descriptionJa": "KDIGO 2024 慢性腎臓病分類。GFR カテゴリ (G1〜G5) およびアルブミン尿カテゴリ (A1〜A3) による。"
+        }
+      ],
+      "nameJa": "腎臓",
+      "descriptionJa": "慢性腎臓病進行、糖尿病性腎症、IgA 腎症、ESRD・透析コホート。"
+    },
+    {
+      "id": "dom-oncology",
+      "name": "Oncology",
+      "slug": "oncology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "systemic",
+        "chest-left",
+        "chest-right",
+        "abdomen-upper",
+        "abdomen-lower",
+        "head"
+      ],
+      "description": "Solid tumor and hematologic malignancy programs spanning multiple anatomical sites. Integrated genomic, imaging, and circulating biomarker datasets aligned to RECIST 1.1 and iRECIST.",
+      "steward": "Dr. Priya Nair",
+      "technicalSteward": "Hannah Klein",
+      "color": "#ec4899",
+      "assetCount": 7,
+      "assets": [
+        {
+          "id": "ast-onc-001",
+          "name": "img_recist_tumor_response",
+          "displayName": "RECIST 1.1 Tumor Response",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "RECIST 1.1 target lesion measurements, non-target lesion qualitative assessments, and overall response classifications across solid tumor studies. Independent central review (BICR) and investigator reads stored separately.",
+          "domainId": "dom-oncology",
+          "sourceSystem": "BioClinica BICR",
+          "database": "snowflake_clinical_lake",
+          "schema": "oncology_curated",
+          "tableName": "img_recist_tumor_response",
+          "cdiscDomain": "RS",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Priya Nair",
+          "owner": "Dr. Aram Petrosyan",
+          "tags": [
+            "recist",
+            "imaging",
+            "bicr"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3"
+          ],
+          "qualityScore": 94,
+          "freshness": "2026-04-26T17:00:00Z",
+          "rowCount": 67014,
+          "displayNameJa": "RECIST 1.1 腫瘍奏効",
+          "descriptionJa": "固形がん試験における RECIST 1.1 標的病変測定、非標的病変質的評価、総合奏効分類。独立中央判定 (BICR) と治験責任医師判定を別個に保存。"
+        },
+        {
+          "id": "ast-onc-002",
+          "name": "gen_ngs_variant_calls",
+          "displayName": "Tumor NGS Variant Calls",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Somatic and germline variant calls (SNV, indel, CNV, fusion) from tumor and matched normal next-generation sequencing. Aligned to GRCh38, annotated via VEP 110.",
+          "domainId": "dom-oncology",
+          "sourceSystem": "Foundation Medicine F1CDx",
+          "database": "databricks_genomics",
+          "schema": "oncology_genomics",
+          "tableName": "gen_ngs_variant_calls",
+          "steward": "Dr. Priya Nair",
+          "owner": "Dr. Yusuf Kara",
+          "tags": [
+            "genomics",
+            "ngs",
+            "f1cdx"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "HIPAA",
+            "GDPR"
+          ],
+          "qualityScore": 89,
+          "qualityBreakdown": {
+            "completeness": 84,
+            "freshness": 88,
+            "validity": 92,
+            "lineage": 92
+          },
+          "freshness": "2026-04-24T22:00:00Z",
+          "rowCount": 4218992,
+          "displayNameJa": "腫瘍 NGS バリアントコール",
+          "descriptionJa": "腫瘍と正常組織の Next Generation Sequencing による体細胞・生殖細胞バリアント (SNV、indel、CNV、融合) コール。GRCh38 アライメント、VEP 110 アノテーション。"
+        },
+        {
+          "id": "ast-onc-003",
+          "name": "bmkr_pdl1_ihc",
+          "displayName": "PD-L1 IHC Expression",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "PD-L1 IHC scoring (TPS, CPS, IC) using 22C3, 28-8, SP142, SP263 assays. Used for stratification in immunotherapy studies.",
+          "domainId": "dom-oncology",
+          "sourceSystem": "Roche Ventana / Agilent Dako",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_pdl1_ihc",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Priya Nair",
+          "tags": [
+            "biomarker",
+            "pdl1",
+            "ihc"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 91,
+          "freshness": "2026-04-23T13:30:00Z",
+          "rowCount": 18402,
+          "displayNameJa": "PD-L1 IHC 発現",
+          "descriptionJa": "22C3、28-8、SP142、SP263 アッセイによる PD-L1 IHC スコアリング (TPS、CPS、IC)。免疫療法試験での層別化に使用。"
+        },
+        {
+          "id": "ast-onc-004",
+          "name": "term_overall_survival",
+          "displayName": "Overall Survival",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Definition of OS, including censoring rules consistent across oncology trials per FDA 2018 oncology endpoint guidance.",
+          "domainId": "dom-oncology",
+          "steward": "Dr. Priya Nair",
+          "smes": [
+            "Dr. Linda Akande"
+          ],
+          "tags": [
+            "glossary",
+            "endpoint"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "FDA",
+            "ICH E9"
+          ],
+          "qualityScore": 100,
+          "freshness": "2026-03-01T00:00:00Z",
+          "displayNameJa": "全生存期間",
+          "descriptionJa": "FDA 2018 オンコロジーエンドポイントガイダンスに従ったオンコロジー試験横断の OS 定義 (打ち切り規則を含む)。"
+        },
+        {
+          "id": "ast-onc-005",
+          "name": "gen_ctdna_panel",
+          "displayName": "Circulating Tumor DNA (Liquid Biopsy)",
+          "type": "Table",
+          "status": "Approved",
+          "certified": false,
+          "description": "ctDNA fragment counts and variant allele frequencies from Guardant360 CDx and Natera Signatera personalized panels.",
+          "domainId": "dom-oncology",
+          "sourceSystem": "Guardant360 CDx",
+          "database": "databricks_genomics",
+          "schema": "oncology_genomics",
+          "tableName": "gen_ctdna_panel",
+          "steward": "Dr. Priya Nair",
+          "tags": [
+            "liquid-biopsy",
+            "genomics",
+            "mrd"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "HIPAA"
+          ],
+          "qualityScore": 84,
+          "freshness": "2026-04-25T18:45:00Z",
+          "rowCount": 102881,
+          "displayNameJa": "循環腫瘍 DNA (リキッドバイオプシー)",
+          "descriptionJa": "Guardant360 CDx および Natera Signatera 個別化パネルからの ctDNA 断片数とバリアントアレル頻度。"
+        },
+        {
+          "id": "ast-onc-006",
+          "name": "ae_ctcae_oncology",
+          "displayName": "Oncology Adverse Events (CTCAE v5)",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "CTCAE v5 graded adverse events with MedDRA 27.0 coding for oncology safety analyses. Linked to Argus PV cases via case_id.",
+          "domainId": "dom-oncology",
+          "sourceSystem": "Oracle Argus Safety",
+          "database": "snowflake_clinical_lake",
+          "schema": "safety_warehouse",
+          "tableName": "ae_ctcae_oncology",
+          "cdiscDomain": "AE",
+          "standard": "SDTM IG 3.4",
+          "steward": "Yuki Nakamura",
+          "owner": "Dr. Asha Iyer",
+          "tags": [
+            "safety",
+            "ctcae",
+            "meddra"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E2A",
+            "ICH E2D",
+            "GDPR"
+          ],
+          "qualityScore": 87,
+          "freshness": "2026-04-26T20:00:00Z",
+          "rowCount": 311504,
+          "displayNameJa": "オンコロジー有害事象 (CTCAE v5)",
+          "descriptionJa": "オンコロジー安全性解析用の CTCAE v5 グレード化有害事象、MedDRA 27.0 コーディング。case_id で Argus PV ケースに紐付け。"
+        },
+        {
+          "id": "ast-onc-007",
+          "name": "img_radiomics_features",
+          "displayName": "Tumor Imaging Radiomics",
+          "type": "Table",
+          "status": "Candidate",
+          "certified": false,
+          "description": "Radiomic features (Pyradiomics 3.1) extracted from tumor lesions on CT/MRI for response prediction modeling. IBSI-compliant feature set.",
+          "domainId": "dom-oncology",
+          "sourceSystem": "CDP Imaging Repository",
+          "database": "databricks_imaging",
+          "schema": "oncology",
+          "tableName": "img_radiomics_features",
+          "steward": "Dr. Aram Petrosyan",
+          "owner": "Dr. Priya Nair",
+          "tags": [
+            "imaging",
+            "radiomics",
+            "exploratory"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": false,
+          "regulatoryFrameworks": [
+            "HIPAA",
+            "GDPR"
+          ],
+          "qualityScore": 78,
+          "freshness": "2026-04-20T05:00:00Z",
+          "rowCount": 89113,
+          "displayNameJa": "腫瘍画像ラジオミクス",
+          "descriptionJa": "応答予測モデリングのため CT/MRI 上の腫瘍病変から抽出された Pyradiomics 3.1 ラジオミクス特徴量。IBSI 準拠特徴セット。"
+        }
+      ],
+      "nameJa": "腫瘍",
+      "descriptionJa": "固形がん・血液悪性腫瘍プログラム。複数の解剖学的部位に跨り、ゲノム・画像・血中バイオマーカーを統合。RECIST 1.1 / iRECIST 準拠。"
+    },
+    {
+      "id": "dom-immunology",
+      "name": "Immunology",
+      "slug": "immunology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "systemic"
+      ],
+      "description": "Autoimmune disease cohorts (RA, SLE, IBD, psoriasis), cytokine profiling, and immune cell phenotyping for biologic and small molecule programs.",
+      "steward": "Dr. Yusuf Kara",
+      "color": "#fbbf24",
+      "assetCount": 5,
+      "assets": [
+        {
+          "id": "ast-imm-001",
+          "name": "bmkr_cytokine_panel",
+          "displayName": "Multiplex Serum Cytokine Panel",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Multiplex serum cytokine panel (IL-1β, IL-6, TNF-α, IFN-γ, IL-17A, IL-23) measured on Meso Scale Discovery V-PLEX from autoimmune studies.",
+          "domainId": "dom-immunology",
+          "sourceSystem": "MSD V-PLEX",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_cytokine_panel",
+          "cdiscDomain": "LB",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Yusuf Kara",
+          "owner": "Naoko Sato",
+          "tags": [
+            "biomarker",
+            "cytokine",
+            "msd"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 88,
+          "freshness": "2026-04-25T16:00:00Z",
+          "rowCount": 27418,
+          "displayNameJa": "多重血清サイトカインパネル",
+          "descriptionJa": "Meso Scale Discovery V-PLEX で測定された自己免疫試験の多重血清サイトカインパネル (IL-1β、IL-6、TNF-α、IFN-γ、IL-17A、IL-23)。"
+        },
+        {
+          "id": "ast-imm-002",
+          "name": "bmkr_flow_phenotypes",
+          "displayName": "Flow Cytometry Immune Phenotypes",
+          "type": "Table",
+          "status": "Approved",
+          "certified": false,
+          "description": "Immune cell subpopulation frequencies from harmonized OMIP-class flow cytometry panels. Compensated and gated centrally on FlowJo 10.10.",
+          "domainId": "dom-immunology",
+          "sourceSystem": "BD FACSymphony",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_flow_phenotypes",
+          "steward": "Dr. Yusuf Kara",
+          "tags": [
+            "flow",
+            "phenotyping",
+            "omip"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": false,
+          "qualityScore": 82,
+          "freshness": "2026-04-22T11:30:00Z",
+          "rowCount": 14922,
+          "displayNameJa": "フローサイトメトリー免疫フェノタイプ",
+          "descriptionJa": "OMIP クラス調和フローサイトメトリーパネルからの免疫細胞サブポピュレーション頻度。FlowJo 10.10 で中央コンペンセーション・ゲーティング。"
+        },
+        {
+          "id": "ast-imm-003",
+          "name": "term_das28_crp",
+          "displayName": "DAS28-CRP",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "DAS28-CRP composite score for rheumatoid arthritis disease activity. Cut-offs: remission < 2.6, low ≤ 3.2, moderate ≤ 5.1, high > 5.1.",
+          "domainId": "dom-immunology",
+          "steward": "Dr. Yusuf Kara",
+          "smes": [
+            "Dr. Linda Akande"
+          ],
+          "tags": [
+            "glossary",
+            "ra",
+            "score"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "qualityScore": 100,
+          "freshness": "2025-09-22T00:00:00Z",
+          "displayNameJa": "DAS28-CRP",
+          "descriptionJa": "関節リウマチ疾患活動性の DAS28-CRP 複合スコア。カットオフ: 寛解 < 2.6、低 ≤ 3.2、中 ≤ 5.1、高 > 5.1。"
+        },
+        {
+          "id": "ast-imm-004",
+          "name": "bmkr_ada_titers",
+          "displayName": "Anti-Drug Antibody Titers",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Confirmatory ADA titer and neutralizing antibody (NAb) measurements for biologic therapeutics across autoimmune programs.",
+          "domainId": "dom-immunology",
+          "sourceSystem": "Gyrolab xPlore",
+          "database": "snowflake_clinical_lake",
+          "schema": "biomarkers",
+          "tableName": "bmkr_ada_titers",
+          "cdiscDomain": "IS",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Yusuf Kara",
+          "tags": [
+            "ada",
+            "immunogenicity",
+            "biologic"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 90,
+          "freshness": "2026-04-24T09:00:00Z",
+          "rowCount": 18203,
+          "displayNameJa": "抗薬物抗体価",
+          "descriptionJa": "自己免疫プログラム横断の生物学的製剤に対する確認 ADA タイターおよび中和抗体 (NAb) 測定値。"
+        },
+        {
+          "id": "ast-imm-005",
+          "name": "rave_qs_ra_pro",
+          "displayName": "RA Patient-Reported Outcomes",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "HAQ-DI, FACIT-Fatigue, SF-36 captured for RA-203 and RA-401 cohorts. Linked to DAS28-CRP for composite remission analyses.",
+          "domainId": "dom-immunology",
+          "sourceSystem": "Medidata Rave Clinical",
+          "database": "snowflake_clinical_lake",
+          "schema": "immunology_curated",
+          "tableName": "rave_qs_ra_pro",
+          "cdiscDomain": "QS",
+          "standard": "SDTM IG 3.4",
+          "steward": "Maya Rodriguez",
+          "owner": "Dr. Yusuf Kara",
+          "tags": [
+            "pro",
+            "ra",
+            "haq"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "GDPR"
+          ],
+          "qualityScore": 86,
+          "freshness": "2026-04-22T14:00:00Z",
+          "rowCount": 41208,
+          "displayNameJa": "RA 患者報告アウトカム",
+          "descriptionJa": "RA-203 および RA-401 コホートで取得した HAQ-DI、FACIT-Fatigue、SF-36。複合寛解解析のため DAS28-CRP に紐付け。"
+        }
+      ],
+      "nameJa": "免疫",
+      "descriptionJa": "自己免疫疾患コホート (RA、SLE、IBD、乾癬)、サイトカインプロファイリング、免疫細胞フェノタイピング。生物学的製剤および低分子プログラム。"
+    },
+    {
+      "id": "dom-pharmacovigilance",
+      "name": "Pharmacovigilance",
+      "slug": "pharmacovigilance",
+      "domainType": "Pharmacovigilance",
+      "bodyRegions": [
+        "systemic"
+      ],
+      "description": "Post-marketing and clinical safety case management. Source: Oracle Argus Safety, integrated with WHO-DD and MedDRA 27.0. Supports E2B(R3) regulatory submissions.",
+      "steward": "Yuki Nakamura",
+      "technicalSteward": "Daichi Kobayashi",
+      "color": "#f87171",
+      "assetCount": 5,
+      "assets": [
+        {
+          "id": "ast-pv-001",
+          "name": "argus_safety_cases",
+          "displayName": "Safety Cases (Argus)",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Individual case safety reports (ICSRs) from Oracle Argus. Includes seriousness, expectedness, causality, MedDRA-coded reactions, WHO-DD coded suspect drugs. E2B(R3) compliant.",
+          "domainId": "dom-pharmacovigilance",
+          "sourceSystem": "Oracle Argus Safety",
+          "database": "snowflake_clinical_lake",
+          "schema": "safety_warehouse",
+          "tableName": "argus_safety_cases",
+          "steward": "Yuki Nakamura",
+          "owner": "Dr. Asha Iyer",
+          "tags": [
+            "safety",
+            "icsr",
+            "e2b"
+          ],
+          "classification": "Restricted",
+          "containsPii": true,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E2B R3",
+            "ICH E2D",
+            "GDPR",
+            "EU CTR"
+          ],
+          "qualityScore": 96,
+          "qualityBreakdown": {
+            "completeness": 98,
+            "freshness": 95,
+            "validity": 96,
+            "lineage": 95
+          },
+          "freshness": "2026-04-27T07:30:00Z",
+          "rowCount": 1841299,
+          "displayNameJa": "安全性ケース (Argus)",
+          "descriptionJa": "Oracle Argus からの個別症例安全性報告 (ICSR)。重篤性、予測性、因果関係、MedDRA コード化反応、WHO-DD コード化被疑薬を含む。E2B(R3) 準拠。"
+        },
+        {
+          "id": "ast-pv-002",
+          "name": "argus_meddra_coding",
+          "displayName": "MedDRA Reaction Coding",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "MedDRA 27.0 coded preferred terms (PT), high-level terms (HLT), and SOC for adverse reactions. Updated quarterly with MedDRA releases.",
+          "domainId": "dom-pharmacovigilance",
+          "sourceSystem": "Oracle Argus Safety",
+          "database": "snowflake_clinical_lake",
+          "schema": "safety_warehouse",
+          "tableName": "argus_meddra_coding",
+          "steward": "Yuki Nakamura",
+          "tags": [
+            "meddra",
+            "coding",
+            "safety"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH M1",
+            "ICH E2D"
+          ],
+          "qualityScore": 98,
+          "freshness": "2026-04-26T22:00:00Z",
+          "rowCount": 4202188,
+          "displayNameJa": "MedDRA 反応コーディング",
+          "descriptionJa": "有害反応に対する MedDRA 27.0 コード化基本語 (PT)、高位語 (HLT)、SOC。MedDRA リリースに合わせて四半期毎更新。"
+        },
+        {
+          "id": "ast-pv-003",
+          "name": "term_serious_ae",
+          "displayName": "Serious Adverse Event (SAE)",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Definition of SAE per ICH E2A: results in death, life-threatening, hospitalization, persistent disability, congenital anomaly, or other medically important.",
+          "domainId": "dom-pharmacovigilance",
+          "steward": "Yuki Nakamura",
+          "smes": [
+            "Dr. Linda Akande"
+          ],
+          "tags": [
+            "glossary",
+            "definition",
+            "sae"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH E2A"
+          ],
+          "qualityScore": 100,
+          "freshness": "2024-11-12T00:00:00Z",
+          "displayNameJa": "重篤有害事象 (SAE)",
+          "descriptionJa": "ICH E2A に基づく SAE 定義: 死亡、生命を脅かす、入院、永続的または重大な障害、先天異常、その他医学的に重要な事象。"
+        },
+        {
+          "id": "ast-pv-004",
+          "name": "argus_signal_detection",
+          "displayName": "PV Signal Detection (PRR/ROR)",
+          "type": "Table",
+          "status": "Under Review",
+          "certified": false,
+          "description": "Disproportionality scores (Proportional Reporting Ratio, Reporting Odds Ratio, IC) computed quarterly for marketed products. Feeds signal management workflow.",
+          "domainId": "dom-pharmacovigilance",
+          "sourceSystem": "Oracle Empirica Signal",
+          "database": "snowflake_clinical_lake",
+          "schema": "safety_warehouse",
+          "tableName": "argus_signal_detection",
+          "steward": "Yuki Nakamura",
+          "tags": [
+            "signal",
+            "disproportionality"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "GVP Module IX"
+          ],
+          "qualityScore": 84,
+          "freshness": "2026-04-15T00:00:00Z",
+          "rowCount": 9418,
+          "upstreamAssetIds": [
+            "ast-pv-001",
+            "ast-pv-002"
+          ],
+          "displayNameJa": "PV シグナル検出 (PRR/ROR)",
+          "descriptionJa": "市販品に対し四半期毎に算出される不釣合い性スコア (Proportional Reporting Ratio、Reporting Odds Ratio、IC)。シグナル管理ワークフローへ供給。"
+        },
+        {
+          "id": "ast-pv-005",
+          "name": "rpt_psur_summary",
+          "displayName": "PSUR / PBRER Summary",
+          "type": "Report",
+          "status": "Approved",
+          "certified": true,
+          "description": "Periodic Safety Update Report aggregated metrics by product. Output feeds Veeva Vault RIM for regulatory submission.",
+          "domainId": "dom-pharmacovigilance",
+          "sourceSystem": "Veeva Vault RIM",
+          "steward": "Yuki Nakamura",
+          "owner": "Daichi Kobayashi",
+          "tags": [
+            "report",
+            "psur",
+            "regulatory"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH E2C R2",
+            "GVP Module VII",
+            "21 CFR Part 11"
+          ],
+          "qualityScore": 95,
+          "freshness": "2026-04-10T00:00:00Z",
+          "upstreamAssetIds": [
+            "ast-pv-001",
+            "ast-pv-004"
+          ],
+          "displayNameJa": "PSUR / PBRER サマリー",
+          "descriptionJa": "製品別に集約された定期的安全性最新報告 (PSUR) のメトリクス。出力は規制提出用に Veeva Vault RIM へ送信。"
+        }
+      ],
+      "nameJa": "ファーマコビジランス",
+      "descriptionJa": "市販後・治験安全性ケース管理。Oracle Argus を中心に WHO-DD・MedDRA 27.0 を統合し、E2B(R3) 準拠の規制報告をサポート。"
+    },
+    {
+      "id": "dom-clinical-operations",
+      "name": "Clinical Operations",
+      "slug": "clinical-operations",
+      "domainType": "Operations",
+      "bodyRegions": [
+        "systemic"
+      ],
+      "description": "Cross-program operational data: enrollment, protocol deviations, site performance, monitoring visits. Source: Veeva Vault CTMS and Medidata Rave.",
+      "steward": "Dr. Asha Iyer",
+      "color": "#14b8a6",
+      "assetCount": 5,
+      "assets": [
+        {
+          "id": "ast-ops-001",
+          "name": "ctms_subject_enrollment",
+          "displayName": "Subject Enrollment",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Per-subject enrollment timestamps, randomization arm (IRT-assigned), and screening outcomes across all active studies.",
+          "domainId": "dom-clinical-operations",
+          "sourceSystem": "Veeva Vault CTMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "operations",
+          "tableName": "ctms_subject_enrollment",
+          "cdiscDomain": "DM",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Asha Iyer",
+          "tags": [
+            "operations",
+            "enrollment",
+            "irt"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3",
+            "EU CTR"
+          ],
+          "qualityScore": 97,
+          "freshness": "2026-04-27T07:00:00Z",
+          "rowCount": 88421,
+          "displayNameJa": "被験者エンロールメント",
+          "descriptionJa": "全アクティブ試験における被験者毎のエンロールメントタイムスタンプ、IRT 割付ランダム化アーム、スクリーニング結果。"
+        },
+        {
+          "id": "ast-ops-002",
+          "name": "ctms_protocol_deviations",
+          "displayName": "Protocol Deviations",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Documented protocol deviations with category (eligibility, IP handling, visit window, ICF), severity, and resolution status. Reviewed at JRC and IDMC.",
+          "domainId": "dom-clinical-operations",
+          "sourceSystem": "Veeva Vault CTMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "operations",
+          "tableName": "ctms_protocol_deviations",
+          "cdiscDomain": "DV",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Asha Iyer",
+          "tags": [
+            "operations",
+            "quality",
+            "deviation"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3"
+          ],
+          "qualityScore": 85,
+          "freshness": "2026-04-26T14:00:00Z",
+          "rowCount": 4912,
+          "displayNameJa": "プロトコル逸脱",
+          "descriptionJa": "カテゴリ (適格性、IP 取扱、訪問ウィンドウ、ICF)、重大度、解決状況付きの記録済プロトコル逸脱。JRC および IDMC でレビュー。"
+        },
+        {
+          "id": "ast-ops-003",
+          "name": "rpt_site_performance",
+          "displayName": "Site Performance Scorecard",
+          "type": "Report",
+          "status": "Approved",
+          "certified": true,
+          "description": "Site-level enrollment velocity, query rate, days-to-resolution, and data freshness scorecard. Refreshed daily via Tableau Server.",
+          "domainId": "dom-clinical-operations",
+          "sourceSystem": "Tableau Server",
+          "steward": "Dr. Asha Iyer",
+          "tags": [
+            "report",
+            "site",
+            "kpi"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": false,
+          "qualityScore": 91,
+          "freshness": "2026-04-25T00:00:00Z",
+          "upstreamAssetIds": [
+            "ast-ops-001",
+            "ast-ops-002"
+          ],
+          "displayNameJa": "サイトパフォーマンススコアカード",
+          "descriptionJa": "サイト単位のエンロールメント速度、クエリ率、解決日数、データ鮮度スコアカード。Tableau Server で日次更新。"
+        },
+        {
+          "id": "ast-ops-004",
+          "name": "etmf_consent_versions",
+          "displayName": "Informed Consent Versions",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Tracking of informed consent form versions (per protocol amendment) signed by each subject. Cross-referenced to eTMF documents in Veeva Vault.",
+          "domainId": "dom-clinical-operations",
+          "sourceSystem": "Veeva Vault eTMF",
+          "database": "snowflake_clinical_lake",
+          "schema": "regulatory",
+          "tableName": "etmf_consent_versions",
+          "steward": "Dr. Asha Iyer",
+          "owner": "Daichi Kobayashi",
+          "tags": [
+            "regulatory",
+            "consent",
+            "etmf"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3",
+            "GDPR",
+            "EU CTR"
+          ],
+          "qualityScore": 99,
+          "freshness": "2026-04-26T22:00:00Z",
+          "rowCount": 91203,
+          "displayNameJa": "インフォームドコンセント版数",
+          "descriptionJa": "被験者毎に署名された ICF バージョン (プロトコル改訂単位) の追跡。Veeva Vault eTMF ドキュメントへ相互参照。"
+        },
+        {
+          "id": "ast-ops-005",
+          "name": "ctms_visit_schedule",
+          "displayName": "Subject Visit Schedule",
+          "type": "Table",
+          "status": "Approved",
+          "certified": false,
+          "description": "Planned vs. actual visit dates for protocol compliance analysis. Used to compute visit window compliance metrics.",
+          "domainId": "dom-clinical-operations",
+          "sourceSystem": "Veeva Vault CTMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "operations",
+          "tableName": "ctms_visit_schedule",
+          "cdiscDomain": "SV",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Asha Iyer",
+          "tags": [
+            "visit",
+            "schedule",
+            "compliance"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH E6 R3"
+          ],
+          "qualityScore": 89,
+          "freshness": "2026-04-27T03:30:00Z",
+          "rowCount": 1248910,
+          "displayNameJa": "被験者訪問スケジュール",
+          "descriptionJa": "プロトコルコンプライアンス解析のための予定 vs. 実際の訪問日。訪問ウィンドウ遵守率の算出に使用。"
+        }
+      ],
+      "nameJa": "臨床オペレーション",
+      "descriptionJa": "プログラム横断のオペレーションデータ: エンロールメント、プロトコル逸脱、サイトパフォーマンス、モニタリング訪問。Veeva Vault CTMS および Medidata Rave がソース。"
+    },
+    {
+      "id": "dom-pharmacology",
+      "name": "Clinical Pharmacology",
+      "slug": "clinical-pharmacology",
+      "domainType": "Therapeutic Area",
+      "bodyRegions": [
+        "systemic"
+      ],
+      "description": "PK/PD modeling datasets, drug exposure metrics, dose-response, drug-drug interaction studies, and population PK analyses. Output supports dose justification at IND/NDA submissions.",
+      "steward": "Dr. Sofia Ribeiro",
+      "color": "#60a5fa",
+      "assetCount": 4,
+      "assets": [
+        {
+          "id": "ast-pharma-001",
+          "name": "pkpd_pc_concentrations",
+          "displayName": "PK Plasma Concentrations",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Plasma concentration vs. time profiles for all dosing cohorts. Bioanalytical results from validated LC-MS/MS assays at central bioanalytical lab.",
+          "domainId": "dom-pharmacology",
+          "sourceSystem": "Watson LIMS",
+          "database": "snowflake_clinical_lake",
+          "schema": "pkpd",
+          "tableName": "pkpd_pc_concentrations",
+          "cdiscDomain": "PC",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Sofia Ribeiro",
+          "tags": [
+            "pk",
+            "pc",
+            "bioanalytical"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH M10"
+          ],
+          "qualityScore": 95,
+          "freshness": "2026-04-24T18:00:00Z",
+          "rowCount": 412889,
+          "displayNameJa": "PK 血漿濃度",
+          "descriptionJa": "全投与コホートの血漿濃度 vs. 時間プロファイル。バリデート済 LC-MS/MS アッセイによる中央バイオアナリシスラボの結果。"
+        },
+        {
+          "id": "ast-pharma-002",
+          "name": "pkpd_pp_nca_summary",
+          "displayName": "NCA PK Parameters",
+          "type": "Table",
+          "status": "Approved",
+          "certified": true,
+          "description": "Per-subject AUC0-t, AUC0-inf, Cmax, Tmax, t1/2 derived from non-compartmental analysis in Phoenix WinNonlin 8.4.",
+          "domainId": "dom-pharmacology",
+          "sourceSystem": "Phoenix WinNonlin",
+          "database": "snowflake_clinical_lake",
+          "schema": "pkpd",
+          "tableName": "pkpd_pp_nca_summary",
+          "cdiscDomain": "PP",
+          "standard": "SDTM IG 3.4",
+          "steward": "Dr. Sofia Ribeiro",
+          "tags": [
+            "pk",
+            "nca",
+            "pp"
+          ],
+          "classification": "Confidential",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH M10"
+          ],
+          "qualityScore": 94,
+          "freshness": "2026-04-22T12:00:00Z",
+          "rowCount": 28190,
+          "upstreamAssetIds": [
+            "ast-pharma-001"
+          ],
+          "displayNameJa": "NCA PK パラメータ",
+          "descriptionJa": "Phoenix WinNonlin 8.4 におけるノンコンパートメント解析から導出された被験者毎の AUC0-t、AUC0-inf、Cmax、Tmax、t1/2。"
+        },
+        {
+          "id": "ast-pharma-003",
+          "name": "popk_nonmem_dataset",
+          "displayName": "PopPK Analysis Dataset (NONMEM)",
+          "type": "Data Set",
+          "status": "Approved",
+          "certified": true,
+          "description": "NONMEM-formatted population PK dataset for the COMPOUND-X program. Includes covariates (weight, age, eGFR, hepatic impairment).",
+          "domainId": "dom-pharmacology",
+          "sourceSystem": "NONMEM 7.5",
+          "database": "snowflake_clinical_lake",
+          "schema": "pkpd",
+          "tableName": "popk_nonmem_dataset",
+          "steward": "Dr. Sofia Ribeiro",
+          "owner": "Hannah Klein",
+          "tags": [
+            "popk",
+            "nonmem",
+            "modeling"
+          ],
+          "classification": "Restricted",
+          "containsPii": false,
+          "containsPhi": true,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "21 CFR Part 11",
+            "ICH M10"
+          ],
+          "qualityScore": 92,
+          "freshness": "2026-04-18T16:00:00Z",
+          "rowCount": 92418,
+          "upstreamAssetIds": [
+            "ast-pharma-001",
+            "ast-pharma-002"
+          ],
+          "displayNameJa": "PopPK 解析データセット (NONMEM)",
+          "descriptionJa": "COMPOUND-X プログラム用の NONMEM フォーマット母集団 PK データセット。共変量 (体重、年齢、eGFR、肝機能障害) を含む。"
+        },
+        {
+          "id": "ast-pharma-004",
+          "name": "term_therapeutic_window",
+          "displayName": "Therapeutic Exposure Window",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Definition of therapeutic exposure window for COMPOUND-X derived from PK/PD modeling and used for dose decisions.",
+          "domainId": "dom-pharmacology",
+          "steward": "Dr. Sofia Ribeiro",
+          "smes": [
+            "Dr. Linda Akande"
+          ],
+          "tags": [
+            "glossary",
+            "definition",
+            "dose"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "qualityScore": 100,
+          "freshness": "2025-12-15T00:00:00Z",
+          "displayNameJa": "治療曝露ウィンドウ",
+          "descriptionJa": "PK/PD モデリングから導出された COMPOUND-X の治療曝露ウィンドウ定義。用量決定に使用。"
+        }
+      ],
+      "nameJa": "臨床薬理",
+      "descriptionJa": "PK/PD モデリングデータセット、薬物曝露指標、用量反応、薬物相互作用試験、母集団 PK 解析。IND/NDA 申請における用量設定の根拠を提供。"
+    },
+    {
+      "id": "dom-glossary",
+      "name": "Enterprise Glossary",
+      "slug": "glossary",
+      "domainType": "Glossary",
+      "bodyRegions": [
+        "systemic"
+      ],
+      "description": "Cross-domain definitions, classifications, and reference codes. Maintained by the Data Standards Office and reviewed semi-annually.",
+      "steward": "Dr. Linda Akande",
+      "technicalSteward": "Hannah Klein",
+      "color": "#94a3b8",
+      "assetCount": 4,
+      "assets": [
+        {
+          "id": "ast-gloss-001",
+          "name": "term_usubjid",
+          "displayName": "Unique Subject Identifier (USUBJID)",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Globally unique identifier for a subject across all studies and submissions. Format: STUDYID-SITEID-SUBJID per CDISC SDTM IG 3.4.",
+          "domainId": "dom-glossary",
+          "steward": "Dr. Linda Akande",
+          "tags": [
+            "glossary",
+            "cdisc",
+            "key"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "FDA",
+            "PMDA",
+            "EMA"
+          ],
+          "qualityScore": 100,
+          "freshness": "2025-08-01T00:00:00Z",
+          "displayNameJa": "被験者識別子 (USUBJID)",
+          "descriptionJa": "全試験・申請を通じて被験者をグローバルに一意識別する識別子。フォーマット: STUDYID-SITEID-SUBJID (CDISC SDTM IG 3.4 準拠)。"
+        },
+        {
+          "id": "ast-gloss-002",
+          "name": "codeset_meddra_27",
+          "displayName": "MedDRA 27.0 Code Set",
+          "type": "Code Set",
+          "status": "Approved",
+          "certified": true,
+          "description": "Medical Dictionary for Regulatory Activities, version 27.0. Used for AE coding across PV and clinical safety. Updated semi-annually.",
+          "domainId": "dom-glossary",
+          "steward": "Yuki Nakamura",
+          "owner": "Dr. Linda Akande",
+          "tags": [
+            "codeset",
+            "meddra",
+            "safety"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH M1"
+          ],
+          "qualityScore": 100,
+          "freshness": "2026-03-01T00:00:00Z",
+          "displayNameJa": "MedDRA 27.0 コードセット",
+          "descriptionJa": "Medical Dictionary for Regulatory Activities バージョン 27.0。PV および臨床安全性の AE コーディングに使用。半年毎更新。"
+        },
+        {
+          "id": "ast-gloss-003",
+          "name": "codeset_whodrug_b3",
+          "displayName": "WHODrug Global B3 Format",
+          "type": "Code Set",
+          "status": "Approved",
+          "certified": true,
+          "description": "WHO Drug Global dictionary, B3 format. Used for concomitant medication and suspect drug coding.",
+          "domainId": "dom-glossary",
+          "steward": "Yuki Nakamura",
+          "owner": "Dr. Linda Akande",
+          "tags": [
+            "codeset",
+            "whodd",
+            "cm"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": true,
+          "regulatoryFrameworks": [
+            "ICH"
+          ],
+          "qualityScore": 100,
+          "freshness": "2026-03-15T00:00:00Z",
+          "displayNameJa": "WHODrug Global B3 フォーマット",
+          "descriptionJa": "WHO Drug Global 辞書 B3 フォーマット。併用薬および被疑薬コーディングに使用。"
+        },
+        {
+          "id": "ast-gloss-004",
+          "name": "term_data_classification",
+          "displayName": "Data Classification Levels",
+          "type": "Business Term",
+          "status": "Approved",
+          "certified": true,
+          "description": "Four-level data classification (Public, Internal, Confidential, Restricted) governing access controls and storage requirements per Information Security Policy.",
+          "domainId": "dom-glossary",
+          "steward": "Hannah Klein",
+          "tags": [
+            "glossary",
+            "policy",
+            "security"
+          ],
+          "classification": "Internal",
+          "containsPii": false,
+          "containsPhi": false,
+          "gxpRelevant": false,
+          "regulatoryFrameworks": [
+            "GDPR",
+            "HIPAA",
+            "APPI"
+          ],
+          "qualityScore": 100,
+          "freshness": "2025-10-30T00:00:00Z",
+          "displayNameJa": "データ分類レベル",
+          "descriptionJa": "情報セキュリティポリシーに基づくアクセス制御・保管要件を規定する4段階データ分類 (Public、Internal、Confidential、Restricted)。"
+        }
+      ],
+      "nameJa": "エンタープライズ用語集",
+      "descriptionJa": "横断ドメインの定義・分類・参照コード。Data Standards Office が管理し、半年毎にレビュー。"
+    }
+  ]
+}
