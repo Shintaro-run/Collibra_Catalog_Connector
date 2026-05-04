@@ -11,12 +11,24 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useT } from '@/lib/i18n';
+import {
+  create as createRequest,
+  nextTrackingId,
+  type AccessRequest,
+  type DurationCode,
+} from '@/lib/requests';
+import type { AssetType, Classification } from '@/lib/types';
 
+// All requests are received by the data steward. `ownerName` is captured
+// alongside for visibility but the steward owns the decision.
 export type AccessRequestTarget = {
-  ownerName: string;
-  ownerRole?: string;
+  stewardName: string;
+  ownerName?: string;
   assetId?: string;
   assetName?: string;
+  assetDisplayName?: string;
+  assetType?: AssetType;
+  classification?: Classification;
   domainName?: string;
 };
 
@@ -70,6 +82,7 @@ function AccessRequestModalView({
   setStage: (s: Stage) => void;
   onClose: () => void;
 }) {
+  const [trackingId, setTrackingId] = useState<string>('');
   const { t, lang } = useT();
   const tt = t.accessRequest;
 
@@ -121,9 +134,38 @@ function AccessRequestModalView({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || !target) return;
     setStage('submitting');
-    window.setTimeout(() => setStage('done'), 1200);
+    const id = nextTrackingId();
+    setTrackingId(id);
+    const req: AccessRequest = {
+      id,
+      createdAt: new Date().toISOString(),
+      asset: {
+        id: target.assetId ?? 'unknown',
+        name: target.assetName ?? target.assetDisplayName ?? 'unknown',
+        displayName: target.assetDisplayName ?? target.assetName ?? 'Asset',
+        type: target.assetType ?? 'Table',
+        classification: target.classification ?? 'Internal',
+        domainName: target.domainName ?? '',
+      },
+      requester: {
+        name: form.name,
+        email: form.email,
+        department: form.department,
+      },
+      reason: form.reason,
+      intendedUse: form.intendedUse,
+      duration: form.duration as DurationCode,
+      managerEmail: form.managerEmail,
+      stewardName: target.stewardName,
+      ownerName: target.ownerName,
+      status: 'Pending',
+    };
+    window.setTimeout(() => {
+      createRequest(req);
+      setStage('done');
+    }, 900);
   };
 
   return (
@@ -146,7 +188,7 @@ function AccessRequestModalView({
             onClick={(e) => e.stopPropagation()}
           >
             {stage === 'done' ? (
-              <Success target={target} onClose={onClose} />
+              <Success target={target} trackingId={trackingId} onClose={onClose} />
             ) : (
               <form onSubmit={handleSubmit}>
                 <div className="px-5 py-4 border-b border-ink-200/60 dark:border-ink-800/60 flex items-start gap-3">
@@ -172,7 +214,7 @@ function AccessRequestModalView({
                     <div className="text-[10px] uppercase tracking-[0.16em] text-ink-400">
                       {tt.steward}
                     </div>
-                    <div className="text-sm font-medium mt-0.5">{target.ownerName}</div>
+                    <div className="text-sm font-medium mt-0.5">{target.stewardName}</div>
                   </div>
                   {target.assetName && (
                     <div className="min-w-0">
@@ -310,17 +352,14 @@ function AccessRequestModalView({
 
 function Success({
   target,
+  trackingId,
   onClose,
 }: {
   target: AccessRequestTarget;
+  trackingId: string;
   onClose: () => void;
 }) {
   const { t } = useT();
-  const trackingId = useMemo(
-    () =>
-      `AR-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 9000 + 1000)}`,
-    [],
-  );
 
   return (
     <div className="px-6 py-8 text-center space-y-4">
@@ -336,7 +375,7 @@ function Success({
         </p>
       </div>
       <div className="rounded-xl bg-ink-50/60 dark:bg-ink-900/40 px-4 py-3 text-left text-xs space-y-1 max-w-md mx-auto">
-        <Row label={t.accessRequest.steward} value={target.ownerName} />
+        <Row label={t.accessRequest.steward} value={target.stewardName} />
         {target.assetName && (
           <Row label={t.accessRequest.asset} value={target.assetName} mono />
         )}

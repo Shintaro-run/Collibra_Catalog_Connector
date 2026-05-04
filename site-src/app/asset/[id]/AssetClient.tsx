@@ -166,8 +166,13 @@ export function AssetClient({
             <Detail icon={<User className="h-3.5 w-3.5" />} label={t.domain.steward}>
               <OwnerLink
                 name={asset.steward}
+                stewardName={asset.steward}
+                ownerName={asset.owner}
                 assetId={asset.id}
-                assetName={displayName}
+                assetName={asset.name}
+                assetDisplayName={displayName}
+                assetType={asset.type}
+                classification={asset.classification}
                 domainName={domainName}
               />
             </Detail>
@@ -175,8 +180,13 @@ export function AssetClient({
               <Detail icon={<User className="h-3.5 w-3.5" />} label={t.asset.owner}>
                 <OwnerLink
                   name={asset.owner}
+                  stewardName={asset.steward}
+                  ownerName={asset.owner}
                   assetId={asset.id}
-                  assetName={displayName}
+                  assetName={asset.name}
+                  assetDisplayName={displayName}
+                  assetType={asset.type}
+                  classification={asset.classification}
                   domainName={domainName}
                 />
               </Detail>
@@ -188,8 +198,13 @@ export function AssetClient({
                     <span key={sme}>
                       <OwnerLink
                         name={sme}
+                        stewardName={asset.steward}
+                        ownerName={asset.owner}
                         assetId={asset.id}
-                        assetName={displayName}
+                        assetName={asset.name}
+                        assetDisplayName={displayName}
+                        assetType={asset.type}
+                        classification={asset.classification}
                         domainName={domainName}
                       />
                       {i < asset.smes!.length - 1 && <span className="text-ink-400">,</span>}

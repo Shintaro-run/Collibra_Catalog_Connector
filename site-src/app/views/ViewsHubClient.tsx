@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import {
   ArrowUpRight,
   CalendarDays,
+  FolderTree,
   GitBranch,
   Orbit,
   PersonStanding,
@@ -22,6 +23,7 @@ const VIEWS = [
   { slug: 'views/systems', icon: Orbit, key: 'systems' as const, accent: '#fbbf24' },
   { slug: 'views/quality', icon: ScrollText, key: 'quality' as const, accent: '#fb7185' },
   { slug: 'views/compliance', icon: ShieldCheck, key: 'compliance' as const, accent: '#f59e0b' },
+  { slug: 'views/folder', icon: FolderTree, key: 'folder' as const, accent: '#fbbf24' },
 ];
 
 export function ViewsHubClient() {

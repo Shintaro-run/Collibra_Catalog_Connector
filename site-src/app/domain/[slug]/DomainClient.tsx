@@ -69,6 +69,7 @@ export function DomainClient({
               <span className="text-ink-400">{t.domain.steward} · </span>
               <OwnerLink
                 name={domain.steward}
+                stewardName={domain.steward}
                 domainName={name}
                 className="text-ink-700 dark:text-ink-200"
               />
@@ -78,6 +79,7 @@ export function DomainClient({
                 <span className="text-ink-400">{t.domain.technicalSteward} · </span>
                 <OwnerLink
                   name={domain.technicalSteward}
+                  stewardName={domain.steward}
                   domainName={name}
                   className="text-ink-700 dark:text-ink-200"
                 />

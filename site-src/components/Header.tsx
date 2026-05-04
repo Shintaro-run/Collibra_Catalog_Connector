@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Search, Sun, Moon, Settings, LayoutGrid } from 'lucide-react';
+import { Search, Sun, Moon, Settings, LayoutGrid, Inbox } from 'lucide-react';
 import { SearchPalette, type SearchItem } from './SearchPalette';
 import { useT } from '@/lib/i18n';
 
@@ -111,6 +111,14 @@ export function Header({ searchIndex }: Props) {
             >
               <LayoutGrid className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{t.views.title}</span>
+            </Link>
+            <Link
+              href="/inbox/"
+              aria-label={t.inbox.title}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-2 h-8 text-[11px] font-medium hover:border-mint-400 hover:text-mint-500 transition-colors"
+            >
+              <Inbox className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t.inbox.title}</span>
             </Link>
             <Link
               href="/settings/"
