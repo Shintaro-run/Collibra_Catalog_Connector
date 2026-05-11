@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
-  title: 'Collibra Catalog Connector — R&D Data Catalog',
+  title: 'Data Magazine — R&D Data Catalog',
   description:
     'Discover trusted clinical, translational, and real-world data assets across therapeutic areas.',
 };

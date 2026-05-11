@@ -7,7 +7,7 @@ export type Lang = 'en' | 'ja';
 
 const STRINGS = {
   en: {
-    appName: 'Collibra Catalog Connector',
+    appName: 'Data Magazine',
     tagline: 'R&D Data Catalog',
     nav: {
       search: 'Search assets, terms…',
@@ -360,7 +360,7 @@ const STRINGS = {
     },
   },
   ja: {
-    appName: 'Collibra Catalog Connector',
+    appName: 'Data Magazine',
     tagline: 'R&D データカタログ',
     nav: {
       search: 'アセット・用語を検索…',

@@ -60,7 +60,7 @@ const DEFAULT_STATE: SettingsState = {
     clientId: '',
     clientSecret: '',
     sharepointSiteUrl: '',
-    documentLibrary: 'Atlas Catalog',
+    documentLibrary: 'Data Magazine',
   },
   schedule: {
     mode: 'daily',
@@ -77,7 +77,7 @@ const DEFAULT_STATE: SettingsState = {
   },
 };
 
-const STORAGE_KEY = 'atlas-settings';
+const STORAGE_KEY = 'dm-settings';
 const ASSET_TYPE_CHOICES = [
   'Table',
   'Column',
@@ -287,7 +287,7 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
           <input
             value={state.entra.documentLibrary}
             onChange={(e) => updateEntra('documentLibrary', e.target.value)}
-            placeholder="Atlas Catalog"
+            placeholder="Data Magazine"
             className={inputClass}
           />
         </Row>

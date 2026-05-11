@@ -36,7 +36,7 @@ jobs:
 
       - name: Build static site
         env:
-          PAGES_BASE_PATH: /Collibra_Catalog_Connector
+          PAGES_BASE_PATH: /Data_Magazine
         run: npm run build
 
       - name: Disable Jekyll on GitHub Pages
