@@ -1,5 +1,4 @@
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import type { ColumnDef, FileNode, FolderNode, MetaMap } from './folder';
 
 export type RawRow = Record<string, string>;
@@ -16,6 +15,7 @@ export type ParsedLibrary = {
   modifiedColumn: string | null;
   modifiedByColumn: string | null;
   customColumns: string[];
+  commonPathPrefix: string;
   warnings: string[];
 };
 
@@ -108,6 +108,7 @@ function findHeader(headers: string[], candidates: string[]): string | null {
 
 export async function parseFile(file: File): Promise<RawRow[]> {
   if (/\.xlsx?$/i.test(file.name)) {
+    const XLSX = await import('xlsx');
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type: 'array' });
     const sheetName = wb.SheetNames[0];
@@ -160,6 +161,23 @@ export function analyzeLibrary(file: File, rows: RawRow[]): ParsedLibrary {
   if (!nameColumn) warnings.push('No "Name" or "Title" column detected — rows cannot be placed in the tree.');
   if (!pathColumn) warnings.push('No "Path" column detected — all items will appear flat under the library root.');
 
+  let commonPathPrefix = '';
+  if (pathColumn && nameColumn) {
+    const folderPaths: string[] = [];
+    for (const row of rows) {
+      const n = (row[nameColumn] || '').trim();
+      const p = (row[pathColumn] || '').trim();
+      if (!n || !p) continue;
+      const folder = stripTrailingName(p, n);
+      if (folder) folderPaths.push(folder);
+    }
+    const candidate = findCommonPathPrefix(folderPaths);
+    if (candidate && splitPath(candidate).length >= 2) {
+      commonPathPrefix = candidate;
+      warnings.push(`Common path prefix "${candidate}" was detected and will be stripped from every row.`);
+    }
+  }
+
   return {
     fileName: file.name,
     libraryName: libraryName || file.name,
@@ -172,6 +190,7 @@ export function analyzeLibrary(file: File, rows: RawRow[]): ParsedLibrary {
     modifiedColumn,
     modifiedByColumn,
     customColumns,
+    commonPathPrefix,
     warnings,
   };
 }
@@ -187,6 +206,7 @@ export function buildLibraryTree(lib: ParsedLibrary): LibraryTree {
     modifiedColumn,
     modifiedByColumn,
     customColumns,
+    commonPathPrefix,
   } = lib;
 
   const rootPath = '/' + safeSlug(libraryName);
@@ -213,6 +233,7 @@ export function buildLibraryTree(lib: ParsedLibrary): LibraryTree {
 
     let folderPath = pathColumn ? (row[pathColumn] || '').trim() : '';
     folderPath = stripTrailingName(folderPath, name);
+    folderPath = stripCommonPrefix(folderPath, commonPathPrefix);
     const segments = splitPath(folderPath);
 
     const isFolder = typeColumn
@@ -358,6 +379,30 @@ function stripTrailingName(folderPath: string, name: string): string {
     return segs.join('/');
   }
   return folderPath;
+}
+
+function findCommonPathPrefix(paths: string[]): string {
+  if (paths.length === 0) return '';
+  const split = paths.map(splitPath);
+  const min = Math.min(...split.map((s) => s.length));
+  const result: string[] = [];
+  for (let i = 0; i < min; i++) {
+    const seg = split[0][i];
+    if (split.every((s) => s[i] === seg)) result.push(seg);
+    else break;
+  }
+  return result.join('/');
+}
+
+function stripCommonPrefix(folderPath: string, prefix: string): string {
+  if (!prefix || !folderPath) return folderPath;
+  const segs = splitPath(folderPath);
+  const prefixSegs = splitPath(prefix);
+  if (segs.length < prefixSegs.length) return folderPath;
+  for (let i = 0; i < prefixSegs.length; i++) {
+    if (segs[i] !== prefixSegs[i]) return folderPath;
+  }
+  return segs.slice(prefixSegs.length).join('/');
 }
 
 function toIso(v: string | undefined): string {

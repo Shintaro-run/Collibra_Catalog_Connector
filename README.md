@@ -68,15 +68,32 @@ The interface ships with:
 
 Folder view supports three data sources, switchable from **Settings → Folder view data source**:
 
-| Source | Direction | Auth | Customer-PC fit |
-|---|---|---|---|
-| **Collibra-mapped** (default) | Read-only | Existing Collibra OAuth | Already wired up |
-| **SharePoint via Microsoft Graph PowerShell** | Read + Write | Device code flow, no Client Secret | Needs Entra ID app registration (admin-team request) |
-| **SharePoint via manual Excel/CSV export** | Read + Write | None (mouse only) | Zero install. Fallback while admin approval is pending |
+| Source | Read | Write | Auth | Customer-PC fit |
+|---|---|---|---|---|
+| **Collibra-mapped** (default) | ✓ | — | Existing Collibra OAuth | Already wired up |
+| **SharePoint via Microsoft Graph PowerShell** | ✓ | ✓ | Device code flow, no Client Secret | Needs Entra ID app registration (admin-team request) |
+| **SharePoint via manual Excel/CSV export** | ✓ | ✓ | None (mouse only) | Zero install. Fallback while admin approval is pending |
 
-The **Microsoft Graph PowerShell** option generates a self-contained PowerShell script using only the standard `Invoke-RestMethod` cmdlet — no PnP.PowerShell or other modules required. Sign-in happens in the browser via device code flow. The script enumerates *all* libraries under the given SharePoint site URL and extracts every non-system custom column.
+### Microsoft Graph PowerShell (read & write)
 
-The **manual Excel/CSV** option uses the built-in "Export to Excel" / "Export to CSV" buttons in the SharePoint library ribbon. Data Magazine parses the resulting files and reconstructs the multi-level folder tree from the path column. Write-back is done by generating a SharePoint-ready CSV plus a step-by-step instruction file for Quick Edit (grid view) paste-in.
+Data Magazine generates a self-contained PowerShell script using only the standard `Invoke-RestMethod` cmdlet — no PnP.PowerShell or other modules required. Sign-in happens in the browser via the OAuth 2.0 device code flow.
+
+**Read.** The import script enumerates *all* document libraries under the configured SharePoint site URL, extracts every non-system custom column with its type, choices, and required flag, and writes `data-magazine-import.json`. SharePoint list and item IDs ride along in a sidecar `spLookup` map so write-back can locate each row again.
+
+**Write.** When Folder view has uncommitted changes against the imported baseline, Settings shows a write-back panel that produces a second PowerShell script. The script POSTs every newly added column to each captured library (using type-specific Graph payloads for text, multiline, choice, date, or boolean) and PATCHes `/lists/{id}/items/{id}/fields` for each changed list item. Failures are reported per row and the script keeps going.
+
+### Manual Excel/CSV export (read & write, zero admin approval)
+
+**Read.** Use SharePoint's built-in "Export to Excel" or "Export to CSV" buttons in the library ribbon. Data Magazine parses the resulting `.csv` or `.xlsx` files, auto-detects path/name/type/size/modified columns in either English or Japanese, strips any common path prefix shared by all rows (e.g. `/sites/RnD/Shared Documents/`), reconstructs the multi-level folder tree, and treats every remaining column as a custom metadata field.
+
+**Write.** Folder view's write-back panel generates two artifacts: a `data-magazine-writeback.csv` keyed by Path + Name with only the changed columns, and a `data-magazine-writeback-instructions.md` containing step-by-step guidance for creating any new columns in SharePoint (with the correct column type), switching the library to grid view, and pasting the values column-range by column-range. SharePoint commits the pasted values when grid view is exited.
+
+### Capabilities common to all three sources
+
+- New custom columns can be added directly inside Folder view (label EN/JA, type, choices, required) and flow through to the write-back artifacts.
+- Per-file metadata edits go through the existing inspector panel with save/discard.
+- An amber banner appears across the top of Folder view as soon as uncommitted changes exist, with a one-click link to Settings.
+- The 3-source switch only affects Folder view; the anatomy map, search, asset detail pages, and access-request workflow keep running off the Collibra-sourced catalog regardless.
 
 ## Local development
 
