@@ -63,6 +63,8 @@ export type ImportHistory = {
     tree: TreeNode[];
     columns: ColumnDef[];
     meta: Record<string, MetaMap>;
+    spLookup?: Record<string, { listId: string; itemId: string }>;
+    libraries?: { listId: string; displayName: string; rootPath: string }[];
   };
 };
 

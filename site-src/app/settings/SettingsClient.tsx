@@ -52,6 +52,7 @@ import {
   type BaselineSnapshot,
 } from '@/lib/sharepointDiff';
 import { generatePowerShellScript, parseGraphImportJson } from '@/lib/graphImportScript';
+import { prepareWriteBack } from '@/lib/graphWriteBackScript';
 
 type DomainSummary = {
   id: string;
@@ -180,6 +181,7 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
   const [graphImportError, setGraphImportError] = useState<string | null>(null);
   const [graphImportDone, setGraphImportDone] = useState(false);
   const [scriptCopied, setScriptCopied] = useState(false);
+  const [wbScriptCopied, setWbScriptCopied] = useState(false);
 
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
   const [currentTree, setCurrentTree] = useState<TreeNode | null>(null);
@@ -218,6 +220,20 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
       baseline,
     );
   }, [baseline, currentTree, currentColumns, currentMeta]);
+
+  const graphWriteBack = useMemo(() => {
+    if (!writeBackDiff?.hasChanges) return null;
+    if (!baseline?.spLookup || !baseline?.libraries) return null;
+    if (!graphSiteUrl.trim() || !graphTenantId.trim() || !graphClientId.trim()) return null;
+    return prepareWriteBack({
+      tenantId: graphTenantId,
+      clientId: graphClientId,
+      siteUrl: graphSiteUrl,
+      diff: writeBackDiff,
+      spLookup: baseline.spLookup,
+      libraries: baseline.libraries,
+    });
+  }, [writeBackDiff, baseline, graphSiteUrl, graphTenantId, graphClientId]);
 
   useEffect(() => {
     try {
@@ -349,6 +365,8 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
           tree: [parsed.tree],
           columns: parsed.columns,
           meta: parsed.meta,
+          ...(parsed.spLookup ? { spLookup: parsed.spLookup } : {}),
+          ...(parsed.libraries ? { libraries: parsed.libraries } : {}),
         },
       });
       setGraphImportDone(true);
@@ -356,6 +374,26 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
     } catch (err) {
       setGraphImportError(err instanceof Error ? err.message : String(err));
     }
+  };
+
+  const handleWbScriptCopy = async () => {
+    if (!graphWriteBack) return;
+    try {
+      await navigator.clipboard.writeText(graphWriteBack.script);
+      setWbScriptCopied(true);
+      window.setTimeout(() => setWbScriptCopied(false), 1800);
+    } catch {
+      // clipboard unavailable; download remains an option.
+    }
+  };
+
+  const handleWbScriptDownload = () => {
+    if (!graphWriteBack) return;
+    downloadFile(
+      graphWriteBack.script,
+      'data-magazine-writeback.ps1',
+      'text/plain;charset=utf-8',
+    );
   };
 
   const handleDownloadCsv = () => {
@@ -716,6 +754,90 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
                   <div className="rounded-lg border border-mint-500/40 bg-mint-500/5 px-3 py-2 text-[11px] text-mint-600 dark:text-mint-300 inline-flex items-center gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Import complete — Folder view updated.
+                  </div>
+                )}
+
+                {writeBackDiff?.hasChanges && baseline && !baseline.spLookup && (
+                  <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-200 leading-relaxed">
+                    Folder view has unsaved changes, but write-back via Graph needs a fresh
+                    import done with the current Data Magazine version (the previous import is
+                    missing SharePoint IDs). Re-run the import script and re-import the JSON.
+                  </div>
+                )}
+
+                {graphWriteBack && writeBackDiff?.hasChanges && (
+                  <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-4 py-3 space-y-3">
+                    <div>
+                      <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
+                        Write back to SharePoint
+                      </div>
+                      <p className="text-[11px] text-ink-600 dark:text-ink-300 mt-1 leading-relaxed">
+                        Folder view has changes not yet in SharePoint. The generated script POSTs
+                        new columns to every captured library and PATCHes the changed list items
+                        in place.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[11px]">
+                      <DiffStat label="New columns" value={writeBackDiff.addedColumns.length} />
+                      <DiffStat label="Items updated" value={graphWriteBack.mappedItemCount} />
+                      <DiffStat
+                        label="Skipped (no SP id)"
+                        value={graphWriteBack.unmappedItemCount}
+                      />
+                    </div>
+                    {graphWriteBack.unmappedItemCount > 0 && (
+                      <div className="text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                        {graphWriteBack.unmappedItemCount} item(s) cannot be written back because
+                        they are missing SharePoint IDs (likely added in Data Magazine after the
+                        last import). Re-import to refresh.
+                      </div>
+                    )}
+
+                    <div className="rounded-lg border border-ink-200 dark:border-ink-800 overflow-hidden">
+                      <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-ink-200 dark:border-ink-800 bg-ink-50/40 dark:bg-ink-900/40">
+                        <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-500">
+                          Write-back PowerShell script
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={handleWbScriptCopy}
+                            className="inline-flex items-center gap-1 rounded-md border border-ink-200 dark:border-ink-800 px-2 py-1 text-[10px] hover:border-mint-400 hover:text-mint-500 transition-colors"
+                          >
+                            {wbScriptCopied ? (
+                              <CheckCircle2 className="h-3 w-3" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                            {wbScriptCopied ? 'Copied' : 'Copy'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleWbScriptDownload}
+                            className="inline-flex items-center gap-1 rounded-md border border-ink-200 dark:border-ink-800 px-2 py-1 text-[10px] hover:border-mint-400 hover:text-mint-500 transition-colors"
+                          >
+                            <Download className="h-3 w-3" />
+                            Download .ps1
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        readOnly
+                        value={graphWriteBack.script}
+                        className="w-full h-72 bg-ink-50/30 dark:bg-ink-950/40 px-3 py-2 text-[11px] font-mono whitespace-pre resize-y outline-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={handleResetToImported}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-3 py-1.5 text-[11px] text-ink-500 hover:border-rose-400 hover:text-rose-400 transition-colors"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        Reset to imported state
+                      </button>
+                    </div>
                   </div>
                 )}
               </>

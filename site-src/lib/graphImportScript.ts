@@ -1,5 +1,9 @@
 import type { ColumnDef, FolderNode, MetaMap } from './folder';
 
+export type SpItemRef = { listId: string; itemId: string };
+
+export type SpLibraryRef = { listId: string; displayName: string; rootPath: string };
+
 export type GraphImportJson = {
   schemaVersion: 1;
   source: 'graph-ps';
@@ -10,6 +14,8 @@ export type GraphImportJson = {
   columns: ColumnDef[];
   meta: Record<string, MetaMap>;
   stats: { libraryCount: number; folderCount: number; fileCount: number };
+  spLookup?: Record<string, SpItemRef>;
+  libraries?: SpLibraryRef[];
 };
 
 export type GraphScriptInputs = {
@@ -192,6 +198,7 @@ function Get-LibraryTree {
     }
     $folderMap = @{ $rootPath = $root }
     $meta = @{}
+    $spLookup = @{}
     $fileCount = 0
     $folderCount = 0
 
@@ -264,6 +271,8 @@ function Get-LibraryTree {
             [void]$parent.children.Add($fileNode)
             $fileCount++
 
+            $spLookup[$itemPath] = @{ listId = $listId; itemId = $item.id }
+
             $metaMap = @{}
             foreach ($col in $customCols) {
                 $val = $item.fields.PSObject.Properties[$col.name]
@@ -293,6 +302,10 @@ function Get-LibraryTree {
         root        = $root
         columns     = @($columnDefs)
         meta        = $meta
+        spLookup    = $spLookup
+        listId      = $listId
+        rootPath    = $rootPath
+        displayName = $libName
         fileCount   = $fileCount
         folderCount = $folderCount
     }
@@ -350,6 +363,19 @@ foreach ($l in $libraries) {
     foreach ($k in $l.meta.Keys) { $combinedMeta[$k] = $l.meta[$k] }
 }
 
+$combinedLookup = @{}
+foreach ($l in $libraries) {
+    foreach ($k in $l.spLookup.Keys) { $combinedLookup[$k] = $l.spLookup[$k] }
+}
+
+$libraryRefs = foreach ($l in $libraries) {
+    [ordered]@{
+        listId      = $l.listId
+        displayName = $l.displayName
+        rootPath    = $l.rootPath
+    }
+}
+
 $totalFolders = ($libraries | ForEach-Object { $_.folderCount } | Measure-Object -Sum).Sum
 $totalFiles   = ($libraries | ForEach-Object { $_.fileCount }   | Measure-Object -Sum).Sum
 
@@ -362,6 +388,8 @@ $output = [ordered]@{
     tree          = $rootTree
     columns       = $combinedColumns
     meta          = $combinedMeta
+    spLookup      = $combinedLookup
+    libraries     = @($libraryRefs)
     stats         = @{
         libraryCount = $libraries.Count
         folderCount  = if ($null -eq $totalFolders) { 0 } else { [int]$totalFolders }
