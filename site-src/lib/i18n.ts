@@ -289,6 +289,19 @@ const STRINGS = {
       },
       libraryNote:
         'Library and columns are configured in Settings. On SharePoint, this UI will read /_api/web/GetFolderByServerRelativeUrl for the tree and /_api/web/lists/getbytitle/items for metadata.',
+      importBar: {
+        sourceLabel: 'Source',
+        importedAt: 'Imported',
+        libraries: 'Libraries',
+        folders: 'Folders',
+        files: 'Files',
+        source: {
+          collibra: 'Collibra-mapped',
+          graphPs: 'SharePoint via Microsoft Graph',
+          manualCsv: 'SharePoint via manual CSV',
+          demo: 'Demo data (seed)',
+        },
+      },
       yes: 'Yes',
       no: 'No',
       none: '—',
@@ -642,6 +655,19 @@ const STRINGS = {
       },
       libraryNote:
         'ライブラリと列は Settings で構成します。SharePoint デプロイ時はツリーを /_api/web/GetFolderByServerRelativeUrl から、メタデータを /_api/web/lists/getbytitle/items から取得します。',
+      importBar: {
+        sourceLabel: '取込元',
+        importedAt: '取込日時',
+        libraries: 'ライブラリ',
+        folders: 'フォルダ',
+        files: 'ファイル',
+        source: {
+          collibra: 'Collibra マッピング',
+          graphPs: 'SharePoint (Microsoft Graph)',
+          manualCsv: 'SharePoint (手動CSV)',
+          demo: 'デモデータ (シード)',
+        },
+      },
       yes: 'はい',
       no: 'いいえ',
       none: '—',

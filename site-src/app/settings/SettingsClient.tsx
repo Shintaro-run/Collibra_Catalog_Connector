@@ -11,6 +11,7 @@ import {
   AlertCircle,
   PlayCircle,
 } from 'lucide-react';
+import { loadSource, saveSource, type SourceConfig, type SourceKind } from '@/lib/folder';
 
 type DomainSummary = {
   id: string;
@@ -78,6 +79,23 @@ const DEFAULT_STATE: SettingsState = {
 };
 
 const STORAGE_KEY = 'dm-settings';
+const SOURCE_OPTIONS: { kind: SourceKind; label: string; desc: string }[] = [
+  {
+    kind: 'collibra',
+    label: 'Collibra-mapped',
+    desc: 'Default. Folder view reflects Collibra metadata mapped to a folder structure.',
+  },
+  {
+    kind: 'graph-ps',
+    label: 'SharePoint via Microsoft Graph (PowerShell)',
+    desc: 'Bidirectional read/write. Generates a self-contained PowerShell script using device code flow. Requires Entra ID app registration.',
+  },
+  {
+    kind: 'manual-csv',
+    label: 'SharePoint via manual Excel/CSV export',
+    desc: 'No admin approval needed. Use SharePoint’s built-in "Export to Excel/CSV" and import the file. Write-back generates a CSV plus Quick Edit instructions.',
+  },
+];
 const ASSET_TYPE_CHOICES = [
   'Table',
   'Column',
@@ -107,6 +125,12 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
     entra: 'idle',
   });
 
+  const [sourceKind, setSourceKind] = useState<SourceKind>('collibra');
+  const [graphSiteUrl, setGraphSiteUrl] = useState('');
+  const [graphTenantId, setGraphTenantId] = useState('');
+  const [graphClientId, setGraphClientId] = useState('');
+  const [sourceHydrated, setSourceHydrated] = useState(false);
+
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -118,6 +142,32 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
       // first-run, ignore
     }
   }, []);
+
+  useEffect(() => {
+    const cfg = loadSource();
+    setSourceKind(cfg.kind);
+    if (cfg.kind === 'graph-ps') {
+      setGraphSiteUrl(cfg.sharepointSiteUrl);
+      setGraphTenantId(cfg.tenantId);
+      setGraphClientId(cfg.clientId);
+    }
+    setSourceHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!sourceHydrated) return;
+    let cfg: SourceConfig;
+    if (sourceKind === 'collibra') cfg = { kind: 'collibra' };
+    else if (sourceKind === 'manual-csv') cfg = { kind: 'manual-csv' };
+    else
+      cfg = {
+        kind: 'graph-ps',
+        sharepointSiteUrl: graphSiteUrl,
+        tenantId: graphTenantId,
+        clientId: graphClientId,
+      };
+    saveSource(cfg);
+  }, [sourceKind, graphSiteUrl, graphTenantId, graphClientId, sourceHydrated]);
 
   const dirty = useMemo(
     () => JSON.stringify(state) !== JSON.stringify(DEFAULT_STATE),
@@ -296,6 +346,82 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
           onTest={() => handleTest('entra')}
           label="Test SharePoint connection"
         />
+      </Section>
+
+      <Section
+        title="Folder view data source"
+        description="Choose where the Folder view loads its multi-level folders and per-file custom columns from. Switching this does not affect the rest of the catalog."
+      >
+        <Row label="Source">
+          <div className="space-y-2">
+            {SOURCE_OPTIONS.map((opt) => {
+              const active = sourceKind === opt.kind;
+              return (
+                <label
+                  key={opt.kind}
+                  className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors ${
+                    active
+                      ? 'border-mint-500 bg-mint-500/5'
+                      : 'border-ink-200 dark:border-ink-800 hover:border-mint-400'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="folder-source"
+                    checked={active}
+                    onChange={() => setSourceKind(opt.kind)}
+                    className="mt-1 accent-mint-500"
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium">{opt.label}</div>
+                    <div className="text-[11px] text-ink-500 dark:text-ink-400 leading-relaxed">
+                      {opt.desc}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </Row>
+        {sourceKind === 'graph-ps' && (
+          <>
+            <Row
+              label="SharePoint site URL"
+              hint="All document libraries under this site will be auto-enumerated."
+            >
+              <input
+                value={graphSiteUrl}
+                onChange={(e) => setGraphSiteUrl(e.target.value)}
+                placeholder="https://yourcompany.sharepoint.com/sites/data-catalog"
+                className={inputClass}
+              />
+            </Row>
+            <Row label="Tenant ID" hint="Provided by your Entra ID admin after app registration.">
+              <input
+                value={graphTenantId}
+                onChange={(e) => setGraphTenantId(e.target.value)}
+                placeholder="00000000-0000-0000-0000-000000000000"
+                className={`${inputClass} font-mono`}
+              />
+            </Row>
+            <Row label="Client ID" hint="Public client app ID. No client secret needed.">
+              <input
+                value={graphClientId}
+                onChange={(e) => setGraphClientId(e.target.value)}
+                placeholder="00000000-0000-0000-0000-000000000000"
+                className={`${inputClass} font-mono`}
+              />
+            </Row>
+            <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-200 leading-relaxed">
+              Script generation, JSON import, and write-back land in upcoming phases.
+            </div>
+          </>
+        )}
+        {sourceKind === 'manual-csv' && (
+          <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-200 leading-relaxed">
+            File picker and write-back CSV generator land in upcoming phases.
+          </div>
+        )}
       </Section>
 
       <Section

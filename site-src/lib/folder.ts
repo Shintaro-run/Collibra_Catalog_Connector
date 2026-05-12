@@ -1,8 +1,7 @@
-// Mock folder/file tree + per-file metadata store for the Folder view PoC.
-// The shape mirrors what SharePoint exposes via REST (`/_api/web/GetFolderByServerRelativeUrl`,
+// Folder/file tree + per-file metadata store for the Folder view.
+// Shape mirrors SharePoint document libraries (`/_api/web/GetFolderByServerRelativeUrl`,
 // `/_api/web/lists/getbytitle('Lib')/fields`, `/_api/web/lists/getbytitle('Lib')/items`),
-// so the swap to a real library is one file. localStorage acts as the
-// metadata-write target until the SharePoint backend is wired in.
+// so an import from a real library can populate localStorage without transformation.
 
 export type ColumnType = 'text' | 'multiline' | 'choice' | 'date' | 'boolean';
 
@@ -43,31 +42,69 @@ export type FolderNode = {
 
 export type TreeNode = FolderNode | FileNode;
 
-const META_STORAGE_KEY = 'ccc-folder-meta-v1';
-const META_SEEDED_KEY = 'ccc-folder-meta-v1-seeded';
+export type SourceKind = 'collibra' | 'graph-ps' | 'manual-csv';
+
+export type SourceConfig =
+  | { kind: 'collibra' }
+  | { kind: 'graph-ps'; sharepointSiteUrl: string; tenantId: string; clientId: string }
+  | { kind: 'manual-csv' };
+
+export type ImportMeta = {
+  source: SourceKind;
+  importedAt: string;
+  libraryCount: number;
+  folderCount: number;
+  fileCount: number;
+};
+
+export type ImportHistory = {
+  current?: ImportMeta;
+  baseline?: {
+    tree: TreeNode[];
+    columns: ColumnDef[];
+    meta: Record<string, MetaMap>;
+  };
+};
+
+const TREE_KEY = 'dm-folder-tree-v1';
+const COLUMNS_KEY = 'dm-folder-columns-v1';
+const META_KEY = 'dm-folder-meta-v1';
+const META_SEEDED_KEY = 'dm-folder-meta-v1-seeded';
+const SOURCE_KEY = 'dm-folder-source-v1';
+const HISTORY_KEY = 'dm-folder-import-history-v1';
+
+export const FOLDER_UPDATE_EVENT = 'dm-folder-meta-updated';
 
 function safeWindow(): Window | null {
   return typeof window === 'undefined' ? null : window;
 }
 
-export function loadAllMeta(): Record<string, MetaMap> {
+function readJSON<T>(key: string): T | null {
   const w = safeWindow();
-  if (!w) return {};
+  if (!w) return null;
   try {
-    const raw = w.localStorage.getItem(META_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? (parsed as Record<string, MetaMap>) : {};
+    const raw = w.localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
   } catch {
-    return {};
+    return null;
   }
 }
 
-function saveAllMeta(map: Record<string, MetaMap>) {
+function writeJSON(key: string, value: unknown) {
   const w = safeWindow();
   if (!w) return;
-  w.localStorage.setItem(META_STORAGE_KEY, JSON.stringify(map));
-  w.dispatchEvent(new Event('ccc-folder-meta-updated'));
+  w.localStorage.setItem(key, JSON.stringify(value));
+  w.dispatchEvent(new Event(FOLDER_UPDATE_EVENT));
+}
+
+export function loadAllMeta(): Record<string, MetaMap> {
+  const parsed = readJSON<Record<string, MetaMap>>(META_KEY);
+  return parsed && typeof parsed === 'object' ? parsed : {};
+}
+
+function saveAllMeta(map: Record<string, MetaMap>) {
+  writeJSON(META_KEY, map);
 }
 
 export function getMeta(path: string): MetaMap {
@@ -88,6 +125,42 @@ export function seedMetaIfEmpty(seed: () => Record<string, MetaMap>) {
     saveAllMeta(seed());
   }
   w.localStorage.setItem(META_SEEDED_KEY, '1');
+}
+
+export function loadTree(): TreeNode | null {
+  return readJSON<TreeNode>(TREE_KEY);
+}
+
+export function saveTree(tree: TreeNode) {
+  writeJSON(TREE_KEY, tree);
+}
+
+export function loadColumns(): ColumnDef[] | null {
+  const parsed = readJSON<ColumnDef[]>(COLUMNS_KEY);
+  return Array.isArray(parsed) ? parsed : null;
+}
+
+export function saveColumns(columns: ColumnDef[]) {
+  writeJSON(COLUMNS_KEY, columns);
+}
+
+export function loadSource(): SourceConfig {
+  const parsed = readJSON<SourceConfig>(SOURCE_KEY);
+  if (parsed && typeof parsed === 'object' && 'kind' in parsed) return parsed;
+  return { kind: 'collibra' };
+}
+
+export function saveSource(source: SourceConfig) {
+  writeJSON(SOURCE_KEY, source);
+}
+
+export function loadHistory(): ImportHistory {
+  const parsed = readJSON<ImportHistory>(HISTORY_KEY);
+  return parsed && typeof parsed === 'object' ? parsed : {};
+}
+
+export function saveHistory(history: ImportHistory) {
+  writeJSON(HISTORY_KEY, history);
 }
 
 export function formatBytes(n: number): string {

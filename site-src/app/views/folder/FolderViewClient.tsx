@@ -20,11 +20,16 @@ import {
   type ColumnDef,
   type FileNode,
   type FolderNode,
+  type ImportMeta,
   type MetaMap,
   type MetaValue,
   type TreeNode,
+  FOLDER_UPDATE_EVENT,
   formatBytes,
   getMeta,
+  loadColumns,
+  loadHistory,
+  loadTree,
   saveMeta,
   seedMetaIfEmpty,
 } from '@/lib/folder';
@@ -35,6 +40,12 @@ type Props = {
   libraryName: string;
   libraryPath: string;
   initialMeta: Record<string, MetaMap>;
+};
+
+const SOURCE_LABEL_KEY: Record<ImportMeta['source'], 'collibra' | 'graphPs' | 'manualCsv'> = {
+  collibra: 'collibra',
+  'graph-ps': 'graphPs',
+  'manual-csv': 'manualCsv',
 };
 
 const VALID_CLASSIFICATIONS: readonly Classification[] = [
@@ -50,12 +61,21 @@ function asClassification(v: unknown): Classification {
     : 'Internal';
 }
 
-export function FolderViewClient({ root, columns, libraryName, libraryPath, initialMeta }: Props) {
+export function FolderViewClient({
+  root: seedRoot,
+  columns: seedColumns,
+  libraryName: seedLibraryName,
+  libraryPath: seedLibraryPath,
+  initialMeta,
+}: Props) {
   const { t, lang } = useT();
   const tt = t.folderView;
   const accessRequest = useAccessRequest();
 
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({ [root.path]: true });
+  const [root, setRoot] = useState<FolderNode>(seedRoot);
+  const [columns, setColumns] = useState<ColumnDef[]>(seedColumns);
+  const [importMeta, setImportMeta] = useState<ImportMeta | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({ [seedRoot.path]: true });
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [metaCache, setMetaCache] = useState<Record<string, MetaMap>>({});
   const [draft, setDraft] = useState<MetaMap>({});
@@ -64,17 +84,44 @@ export function FolderViewClient({ root, columns, libraryName, libraryPath, init
 
   useEffect(() => {
     seedMetaIfEmpty(() => initialMeta);
-    setHydrated(true);
-    // Auto-select first file for nice initial render
+    const refresh = () => {
+      const storedTree = loadTree();
+      const storedColumns = loadColumns();
+      const history = loadHistory();
+      const hasImport =
+        storedTree && storedTree.kind === 'folder' && storedColumns && storedColumns.length > 0;
+      if (hasImport) {
+        setRoot(storedTree as FolderNode);
+        setColumns(storedColumns);
+        setImportMeta(history.current ?? null);
+      } else {
+        setRoot(seedRoot);
+        setColumns(seedColumns);
+        setImportMeta(null);
+      }
+      setHydrated(true);
+    };
+    refresh();
+    window.addEventListener(FOLDER_UPDATE_EVENT, refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener(FOLDER_UPDATE_EVENT, refresh);
+      window.removeEventListener('storage', refresh);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const firstFile = findFirstFile(root);
     if (firstFile) {
       setSelectedPath(firstFile.path);
-      // Expand its ancestors
       const ancestors = ancestorPaths(firstFile.path, root.path);
-      setExpanded((cur) => ({ ...cur, ...Object.fromEntries(ancestors.map((p) => [p, true])) }));
+      setExpanded({ [root.path]: true, ...Object.fromEntries(ancestors.map((p) => [p, true])) });
+    } else {
+      setSelectedPath(null);
+      setExpanded({ [root.path]: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [root]);
 
   useEffect(() => {
     if (!selectedPath || !hydrated) return;
@@ -109,6 +156,12 @@ export function FolderViewClient({ root, columns, libraryName, libraryPath, init
     setSaveState('idle');
   };
 
+  const libraryName = importMeta ? root.name : seedLibraryName;
+  const libraryPath = importMeta ? root.path : seedLibraryPath;
+  const sourceLabel = importMeta
+    ? tt.importBar.source[SOURCE_LABEL_KEY[importMeta.source]]
+    : tt.importBar.source.demo;
+
   return (
     <div className="space-y-6">
       <header className="space-y-3">
@@ -131,6 +184,39 @@ export function FolderViewClient({ root, columns, libraryName, libraryPath, init
           </div>
         </div>
       </header>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-ink-200 dark:border-ink-800 bg-ink-50/30 dark:bg-ink-900/30 px-3 py-2 text-[11px]">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="text-ink-400 uppercase tracking-[0.16em] text-[10px]">
+            {tt.importBar.sourceLabel}
+          </span>
+          <span className="font-medium text-mint-500">{sourceLabel}</span>
+        </span>
+        {importMeta && (
+          <>
+            <span className="text-ink-300 dark:text-ink-700">·</span>
+            <span>
+              <span className="text-ink-400">{tt.importBar.importedAt}: </span>
+              <span className="font-mono">{formatDate(importMeta.importedAt, lang)}</span>
+            </span>
+            <span className="text-ink-300 dark:text-ink-700">·</span>
+            <span>
+              <span className="text-ink-400">{tt.importBar.libraries}: </span>
+              <span className="font-mono">{importMeta.libraryCount}</span>
+            </span>
+            <span className="text-ink-300 dark:text-ink-700">·</span>
+            <span>
+              <span className="text-ink-400">{tt.importBar.folders}: </span>
+              <span className="font-mono">{importMeta.folderCount}</span>
+            </span>
+            <span className="text-ink-300 dark:text-ink-700">·</span>
+            <span>
+              <span className="text-ink-400">{tt.importBar.files}: </span>
+              <span className="font-mono">{importMeta.fileCount}</span>
+            </span>
+          </>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_1fr] gap-4">
         <aside className="glass rounded-2xl overflow-hidden">
