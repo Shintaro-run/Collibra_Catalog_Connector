@@ -16,16 +16,26 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
+  Download,
+  RotateCcw,
 } from 'lucide-react';
 import {
+  FOLDER_UPDATE_EVENT,
+  loadAllMeta,
+  loadColumns,
+  loadHistory,
   loadSource,
+  loadTree,
   saveAllMeta,
   saveColumns,
   saveHistory,
   saveSource,
   saveTree,
+  type ColumnDef,
+  type MetaMap,
   type SourceConfig,
   type SourceKind,
+  type TreeNode,
 } from '@/lib/folder';
 import {
   analyzeLibrary,
@@ -34,6 +44,12 @@ import {
   parseFile,
   type ParsedLibrary,
 } from '@/lib/sharepointImport';
+import {
+  computeDiff,
+  renderInstructionsMd,
+  renderWriteBackCsv,
+  type BaselineSnapshot,
+} from '@/lib/sharepointDiff';
 
 type DomainSummary = {
   id: string;
@@ -159,6 +175,35 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
   const [importDone, setImportDone] = useState(false);
   const [showExportHelp, setShowExportHelp] = useState(false);
 
+  const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
+  const [currentTree, setCurrentTree] = useState<TreeNode | null>(null);
+  const [currentColumns, setCurrentColumns] = useState<ColumnDef[]>([]);
+  const [currentMeta, setCurrentMeta] = useState<Record<string, MetaMap>>({});
+
+  useEffect(() => {
+    const refresh = () => {
+      setBaseline(loadHistory().baseline ?? null);
+      setCurrentTree(loadTree());
+      setCurrentColumns(loadColumns() ?? []);
+      setCurrentMeta(loadAllMeta());
+    };
+    refresh();
+    window.addEventListener(FOLDER_UPDATE_EVENT, refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener(FOLDER_UPDATE_EVENT, refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
+
+  const writeBackDiff = useMemo(() => {
+    if (!baseline) return null;
+    return computeDiff(
+      { tree: currentTree, columns: currentColumns, meta: currentMeta },
+      baseline,
+    );
+  }, [baseline, currentTree, currentColumns, currentMeta]);
+
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -250,6 +295,30 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
     setPickedLibraries([]);
     setPickError(null);
     setImportDone(false);
+  };
+
+  const handleDownloadCsv = () => {
+    if (!writeBackDiff) return;
+    const csv = renderWriteBackCsv(writeBackDiff);
+    downloadFile(csv, 'data-magazine-writeback.csv', 'text/csv;charset=utf-8');
+  };
+
+  const handleDownloadInstructions = () => {
+    if (!writeBackDiff) return;
+    const md = renderInstructionsMd(writeBackDiff);
+    downloadFile(md, 'data-magazine-writeback-instructions.md', 'text/markdown;charset=utf-8');
+  };
+
+  const handleResetToImported = () => {
+    if (!baseline) return;
+    if (
+      !window.confirm(
+        'Reset all Folder view edits back to the imported state? Any unsaved column additions and value changes will be lost.',
+      )
+    )
+      return;
+    saveColumns(baseline.columns);
+    saveAllMeta(baseline.meta);
   };
 
   const handleImport = () => {
@@ -584,6 +653,55 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
                   >
                     <Database className="h-3.5 w-3.5" />
                     {importBusy ? 'Importing…' : 'Import to Folder view'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {writeBackDiff?.hasChanges && baseline && (
+              <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-4 py-3 space-y-3">
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">
+                    Write back to SharePoint
+                  </div>
+                  <p className="text-[11px] text-ink-600 dark:text-ink-300 mt-1 leading-relaxed">
+                    Folder view has changes that are not yet in SharePoint. Generate a CSV plus
+                    step-by-step instructions to copy them across.
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-[11px]">
+                  <DiffStat label="New columns" value={writeBackDiff.addedColumns.length} />
+                  <DiffStat label="Files changed" value={writeBackDiff.changedItems.length} />
+                  <DiffStat
+                    label="Removed columns"
+                    value={writeBackDiff.removedColumns.length}
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadCsv}
+                    disabled={writeBackDiff.changedItems.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-mint-500 text-ink-950 px-3 py-1.5 text-xs font-medium hover:bg-mint-400 transition-colors disabled:opacity-40"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadInstructions}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-3 py-1.5 text-xs hover:border-mint-400 hover:text-mint-500 transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download instructions (Markdown)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetToImported}
+                    className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-3 py-1.5 text-[11px] text-ink-500 hover:border-rose-400 hover:text-rose-400 transition-colors"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Reset to imported state
                   </button>
                 </div>
               </div>
@@ -1027,4 +1145,25 @@ function StatCell({ label, value }: { label: string; value: string }) {
       <div className="font-mono truncate text-[11px]">{value}</div>
     </div>
   );
+}
+
+function DiffStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md bg-ink-50/40 dark:bg-ink-900/40 px-2 py-1.5">
+      <div className="text-[9px] uppercase tracking-[0.16em] text-ink-400">{label}</div>
+      <div className="font-mono text-sm">{value}</div>
+    </div>
+  );
+}
+
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

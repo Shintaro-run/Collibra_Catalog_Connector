@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   ChevronRight,
   ChevronDown,
@@ -12,27 +13,36 @@ import {
   Check,
   Database,
   KeyRound,
+  Plus,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAccessRequest } from '@/components/AccessRequestModal';
 import type { Classification } from '@/lib/types';
 import { useT, type Lang } from '@/lib/i18n';
 import {
   type ColumnDef,
+  type ColumnType,
   type FileNode,
   type FolderNode,
+  type ImportHistory,
   type ImportMeta,
   type MetaMap,
   type MetaValue,
+  type SourceConfig,
   type TreeNode,
   FOLDER_UPDATE_EVENT,
   formatBytes,
   getMeta,
+  loadAllMeta,
   loadColumns,
   loadHistory,
+  loadSource,
   loadTree,
+  saveColumns,
   saveMeta,
   seedMetaIfEmpty,
 } from '@/lib/folder';
+import { computeDiff } from '@/lib/sharepointDiff';
 
 type Props = {
   root: FolderNode;
@@ -75,30 +85,37 @@ export function FolderViewClient({
   const [root, setRoot] = useState<FolderNode>(seedRoot);
   const [columns, setColumns] = useState<ColumnDef[]>(seedColumns);
   const [importMeta, setImportMeta] = useState<ImportMeta | null>(null);
+  const [history, setHistory] = useState<ImportHistory>({});
+  const [sourceConfig, setSourceConfig] = useState<SourceConfig>({ kind: 'collibra' });
+  const [allMeta, setAllMeta] = useState<Record<string, MetaMap>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ [seedRoot.path]: true });
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [metaCache, setMetaCache] = useState<Record<string, MetaMap>>({});
   const [draft, setDraft] = useState<MetaMap>({});
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [hydrated, setHydrated] = useState(false);
+  const [showAddColumn, setShowAddColumn] = useState(false);
 
   useEffect(() => {
     seedMetaIfEmpty(() => initialMeta);
     const refresh = () => {
       const storedTree = loadTree();
       const storedColumns = loadColumns();
-      const history = loadHistory();
+      const storedHistory = loadHistory();
       const hasImport =
         storedTree && storedTree.kind === 'folder' && storedColumns && storedColumns.length > 0;
       if (hasImport) {
         setRoot(storedTree as FolderNode);
         setColumns(storedColumns);
-        setImportMeta(history.current ?? null);
+        setImportMeta(storedHistory.current ?? null);
       } else {
         setRoot(seedRoot);
         setColumns(seedColumns);
         setImportMeta(null);
       }
+      setHistory(storedHistory);
+      setSourceConfig(loadSource());
+      setAllMeta(loadAllMeta());
       setHydrated(true);
     };
     refresh();
@@ -155,6 +172,38 @@ export function FolderViewClient({
     setDraft(metaCache[selectedPath] ?? {});
     setSaveState('idle');
   };
+
+  const handleAddColumn = (draftCol: { id: string; label: string; labelJa?: string; type: ColumnType; choices?: string[]; required?: boolean }) => {
+    const existingIds = new Set(columns.map((c) => c.id));
+    let id = draftCol.id;
+    let suffix = 1;
+    while (existingIds.has(id)) {
+      suffix++;
+      id = `${draftCol.id}_${suffix}`;
+    }
+    const finalCol: ColumnDef = {
+      id,
+      label: draftCol.label,
+      type: draftCol.type,
+      ...(draftCol.labelJa ? { labelJa: draftCol.labelJa } : {}),
+      ...(draftCol.choices && draftCol.choices.length > 0 ? { choices: draftCol.choices } : {}),
+      ...(draftCol.required ? { required: true } : {}),
+    };
+    const next = [...columns, finalCol];
+    setColumns(next);
+    saveColumns(next);
+    setShowAddColumn(false);
+  };
+
+  const diff = useMemo(() => {
+    if (!history.baseline) return null;
+    return computeDiff(
+      { tree: root, columns, meta: allMeta },
+      history.baseline,
+    );
+  }, [history.baseline, root, columns, allMeta]);
+
+  const showWriteBackBanner = sourceConfig.kind === 'manual-csv' && diff?.hasChanges;
 
   const libraryName = importMeta ? root.name : seedLibraryName;
   const libraryPath = importMeta ? root.path : seedLibraryPath;
@@ -217,6 +266,53 @@ export function FolderViewClient({
           </>
         )}
       </div>
+
+      {showWriteBackBanner && diff && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-2.5 text-[12px]">
+          <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <span className="font-medium text-amber-700 dark:text-amber-200">
+              {tt.writeBack.bannerTitle}
+            </span>
+            <span className="text-ink-500 dark:text-ink-400 ml-2">
+              {tt.writeBack.bannerSummary
+                .replace('{cols}', String(diff.addedColumns.length))
+                .replace('{files}', String(diff.changedItems.length))}
+            </span>
+          </div>
+          <Link
+            href="/settings"
+            className="inline-flex items-center gap-1 rounded-md border border-amber-400/60 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-200 hover:bg-amber-500/10 transition-colors shrink-0"
+          >
+            {tt.writeBack.goToSettings}
+          </Link>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-2 text-[11px]">
+        <div className="text-ink-400">
+          {tt.columns.count.replace('{n}', String(columns.length))}
+        </div>
+        {!showAddColumn ? (
+          <button
+            type="button"
+            onClick={() => setShowAddColumn(true)}
+            className="inline-flex items-center gap-1 rounded-md border border-ink-200 dark:border-ink-800 px-2.5 py-1 text-[11px] hover:border-mint-400 hover:text-mint-500 transition-colors"
+          >
+            <Plus className="h-3 w-3" />
+            {tt.columns.addButton}
+          </button>
+        ) : null}
+      </div>
+
+      {showAddColumn && (
+        <AddColumnForm
+          existingIds={columns.map((c) => c.id)}
+          onCancel={() => setShowAddColumn(false)}
+          onSubmit={handleAddColumn}
+          labels={tt.columns}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_1fr] gap-4">
         <aside className="glass rounded-2xl overflow-hidden">
@@ -666,3 +762,170 @@ function formatDate(iso: string, lang: Lang): string {
 
 const inputClass =
   'w-full rounded-lg border border-ink-200 dark:border-ink-800 bg-ink-50/30 dark:bg-ink-900/30 px-3 py-2 text-sm outline-none focus:border-mint-400 focus:ring-1 focus:ring-mint-500/30 transition-colors';
+
+const COLUMN_TYPES: ColumnType[] = ['text', 'multiline', 'choice', 'date', 'boolean'];
+
+function slugifyId(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'column'
+  );
+}
+
+type AddColumnLabels = {
+  addButton: string;
+  count: string;
+  formTitle: string;
+  labelEn: string;
+  labelJa: string;
+  type: string;
+  typeNames: Record<ColumnType, string>;
+  choices: string;
+  choicesHint: string;
+  required: string;
+  submit: string;
+  cancel: string;
+};
+
+function AddColumnForm({
+  existingIds,
+  onCancel,
+  onSubmit,
+  labels,
+}: {
+  existingIds: string[];
+  onCancel: () => void;
+  onSubmit: (col: {
+    id: string;
+    label: string;
+    labelJa?: string;
+    type: ColumnType;
+    choices?: string[];
+    required?: boolean;
+  }) => void;
+  labels: AddColumnLabels;
+}) {
+  const [labelEn, setLabelEn] = useState('');
+  const [labelJa, setLabelJa] = useState('');
+  const [type, setType] = useState<ColumnType>('text');
+  const [choicesText, setChoicesText] = useState('');
+  const [required, setRequired] = useState(false);
+
+  const canSubmit = labelEn.trim().length > 0;
+  const idPreview = labelEn.trim() ? slugifyId(labelEn) : '';
+  const idCollision = idPreview && existingIds.includes(idPreview);
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const choices =
+      type === 'choice'
+        ? choicesText
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+    onSubmit({
+      id: slugifyId(labelEn),
+      label: labelEn.trim(),
+      labelJa: labelJa.trim() || undefined,
+      type,
+      choices,
+      required,
+    });
+  };
+
+  return (
+    <div className="rounded-xl border border-ink-200 dark:border-ink-800 px-4 py-4 space-y-3 bg-ink-50/30 dark:bg-ink-900/30">
+      <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-mint-500">
+        {labels.formTitle}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="block">
+          <div className="text-[11px] font-medium mb-1">
+            {labels.labelEn}
+            <span className="text-rose-400 ml-0.5">*</span>
+          </div>
+          <input
+            value={labelEn}
+            onChange={(e) => setLabelEn(e.target.value)}
+            placeholder="Therapeutic Area"
+            className={inputClass}
+          />
+          {idPreview && (
+            <div
+              className={`text-[10px] mt-1 font-mono ${
+                idCollision ? 'text-amber-500' : 'text-ink-400'
+              }`}
+            >
+              id: {idPreview}
+              {idCollision ? ' (will be made unique)' : ''}
+            </div>
+          )}
+        </label>
+        <label className="block">
+          <div className="text-[11px] font-medium mb-1">{labels.labelJa}</div>
+          <input
+            value={labelJa}
+            onChange={(e) => setLabelJa(e.target.value)}
+            placeholder="治療領域"
+            className={inputClass}
+          />
+        </label>
+        <label className="block">
+          <div className="text-[11px] font-medium mb-1">{labels.type}</div>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as ColumnType)}
+            className={inputClass}
+          >
+            {COLUMN_TYPES.map((tp) => (
+              <option key={tp} value={tp}>
+                {labels.typeNames[tp]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 self-end pb-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={required}
+            onChange={(e) => setRequired(e.target.checked)}
+            className="accent-mint-500"
+          />
+          <span className="text-[12px]">{labels.required}</span>
+        </label>
+      </div>
+      {type === 'choice' && (
+        <label className="block">
+          <div className="text-[11px] font-medium mb-1">{labels.choices}</div>
+          <textarea
+            value={choicesText}
+            onChange={(e) => setChoicesText(e.target.value)}
+            placeholder={'Oncology\nCardiology\nRespiratory'}
+            className={`${inputClass} h-24 resize-none font-mono text-[12px]`}
+          />
+          <div className="text-[10px] text-ink-400 mt-1">{labels.choicesHint}</div>
+        </label>
+      )}
+      <div className="flex items-center justify-end gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-ink-200 dark:border-ink-800 px-3 py-1.5 text-xs hover:border-rose-400 hover:text-rose-400 transition-colors"
+        >
+          {labels.cancel}
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          className="rounded-lg bg-mint-500 text-ink-950 px-4 py-1.5 text-xs font-medium hover:bg-mint-400 transition-colors disabled:opacity-40"
+        >
+          {labels.submit}
+        </button>
+      </div>
+    </div>
+  );
+}
