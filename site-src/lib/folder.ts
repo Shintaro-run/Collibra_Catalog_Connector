@@ -103,7 +103,7 @@ export function loadAllMeta(): Record<string, MetaMap> {
   return parsed && typeof parsed === 'object' ? parsed : {};
 }
 
-function saveAllMeta(map: Record<string, MetaMap>) {
+export function saveAllMeta(map: Record<string, MetaMap>) {
   writeJSON(META_KEY, map);
 }
 

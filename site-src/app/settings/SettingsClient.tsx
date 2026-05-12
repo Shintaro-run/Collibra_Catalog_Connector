@@ -10,8 +10,30 @@ import {
   CheckCircle2,
   AlertCircle,
   PlayCircle,
+  Upload,
+  FileSpreadsheet,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Database,
 } from 'lucide-react';
-import { loadSource, saveSource, type SourceConfig, type SourceKind } from '@/lib/folder';
+import {
+  loadSource,
+  saveAllMeta,
+  saveColumns,
+  saveHistory,
+  saveSource,
+  saveTree,
+  type SourceConfig,
+  type SourceKind,
+} from '@/lib/folder';
+import {
+  analyzeLibrary,
+  buildLibraryTree,
+  combineLibraries,
+  parseFile,
+  type ParsedLibrary,
+} from '@/lib/sharepointImport';
 
 type DomainSummary = {
   id: string;
@@ -131,6 +153,12 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
   const [graphClientId, setGraphClientId] = useState('');
   const [sourceHydrated, setSourceHydrated] = useState(false);
 
+  const [pickedLibraries, setPickedLibraries] = useState<ParsedLibrary[]>([]);
+  const [pickError, setPickError] = useState<string | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importDone, setImportDone] = useState(false);
+  const [showExportHelp, setShowExportHelp] = useState(false);
+
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -184,6 +212,76 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
     if (window.confirm('Reset all settings to defaults? This cannot be undone.')) {
       setState(DEFAULT_STATE);
       window.localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setPickError(null);
+    setImportDone(false);
+    const newLibs: ParsedLibrary[] = [];
+    for (const f of Array.from(files)) {
+      try {
+        const rows = await parseFile(f);
+        if (rows.length === 0) {
+          setPickError(`${f.name}: file is empty or contains no rows.`);
+          return;
+        }
+        newLibs.push(analyzeLibrary(f, rows));
+      } catch (err) {
+        setPickError(`${f.name}: ${err instanceof Error ? err.message : String(err)}`);
+        return;
+      }
+    }
+    setPickedLibraries((cur) => [...cur, ...newLibs]);
+  };
+
+  const handleRenameLibrary = (idx: number, newName: string) => {
+    setPickedLibraries((cur) =>
+      cur.map((l, i) => (i === idx ? { ...l, libraryName: newName } : l)),
+    );
+  };
+
+  const handleRemoveLibrary = (idx: number) => {
+    setPickedLibraries((cur) => cur.filter((_, i) => i !== idx));
+  };
+
+  const handleClearPicks = () => {
+    setPickedLibraries([]);
+    setPickError(null);
+    setImportDone(false);
+  };
+
+  const handleImport = () => {
+    if (pickedLibraries.length === 0) return;
+    setImportBusy(true);
+    try {
+      const trees = pickedLibraries.map(buildLibraryTree);
+      const combined = combineLibraries(trees);
+      saveTree(combined.tree);
+      saveColumns(combined.columns);
+      saveAllMeta(combined.meta);
+      saveHistory({
+        current: {
+          source: 'manual-csv',
+          importedAt: new Date().toISOString(),
+          libraryCount: combined.libraryCount,
+          folderCount: combined.folderCount,
+          fileCount: combined.fileCount,
+        },
+        baseline: {
+          tree: [combined.tree],
+          columns: combined.columns,
+          meta: combined.meta,
+        },
+      });
+      setPickedLibraries([]);
+      setImportDone(true);
+      window.setTimeout(() => setImportDone(false), 4000);
+    } catch (err) {
+      setPickError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setImportBusy(false);
     }
   };
 
@@ -418,8 +516,78 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
           </>
         )}
         {sourceKind === 'manual-csv' && (
-          <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-200 leading-relaxed">
-            File picker and write-back CSV generator land in upcoming phases.
+          <div className="space-y-3">
+            <ExportHelpBlock
+              open={showExportHelp}
+              onToggle={() => setShowExportHelp((v) => !v)}
+            />
+
+            <div className="rounded-lg border border-dashed border-ink-300 dark:border-ink-700 px-4 py-5 text-center">
+              <Upload className="mx-auto h-6 w-6 text-ink-400 mb-2" />
+              <label className="text-sm cursor-pointer inline-block">
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  multiple
+                  onChange={(e) => {
+                    handleFiles(e.target.files);
+                    e.target.value = '';
+                  }}
+                  className="sr-only"
+                />
+                <span className="font-medium text-mint-500 hover:underline">
+                  Choose CSV or Excel files
+                </span>
+                <span className="text-ink-400"> — one per library, multiple allowed</span>
+              </label>
+            </div>
+
+            {pickError && (
+              <div className="rounded-lg border border-rose-400/40 bg-rose-500/5 px-3 py-2 text-[11px] text-rose-600 dark:text-rose-300 inline-flex items-start gap-2">
+                <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <span>{pickError}</span>
+              </div>
+            )}
+
+            {importDone && (
+              <div className="rounded-lg border border-mint-500/40 bg-mint-500/5 px-3 py-2 text-[11px] text-mint-600 dark:text-mint-300 inline-flex items-center gap-2">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Import complete — Folder view updated.
+              </div>
+            )}
+
+            {pickedLibraries.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-400">
+                  Preview ({pickedLibraries.length}{' '}
+                  {pickedLibraries.length === 1 ? 'library' : 'libraries'})
+                </div>
+                {pickedLibraries.map((lib, idx) => (
+                  <LibraryPreviewCard
+                    key={`${lib.fileName}-${idx}`}
+                    lib={lib}
+                    onRename={(n) => handleRenameLibrary(idx, n)}
+                    onRemove={() => handleRemoveLibrary(idx)}
+                  />
+                ))}
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    onClick={handleClearPicks}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-3 py-1.5 text-xs hover:border-rose-400 hover:text-rose-400 transition-colors"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={handleImport}
+                    disabled={importBusy}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-mint-500 text-ink-950 px-4 py-1.5 text-xs font-medium hover:bg-mint-400 transition-colors disabled:opacity-50"
+                  >
+                    <Database className="h-3.5 w-3.5" />
+                    {importBusy ? 'Importing…' : 'Import to Folder view'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Section>
@@ -730,6 +898,133 @@ function TestRow({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function ExportHelpBlock({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <div className="rounded-lg border border-ink-200 dark:border-ink-800 overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-ink-100/40 dark:hover:bg-ink-900/40 transition-colors"
+      >
+        {open ? (
+          <ChevronDown className="h-3.5 w-3.5" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5" />
+        )}
+        <span className="font-medium">How to export from SharePoint</span>
+      </button>
+      {open && (
+        <ol className="border-t border-ink-200 dark:border-ink-800 px-5 py-3 text-[12px] leading-relaxed space-y-1.5 list-decimal text-ink-600 dark:text-ink-300">
+          <li>Open the SharePoint document library in your browser.</li>
+          <li>
+            Switch to (or create) a view that displays every custom column you want to import.
+            Hidden columns are not exported.
+          </li>
+          <li>
+            If the library has more than about 5,000 items, raise the view&rsquo;s Item Limit so the
+            export is not paginated.
+          </li>
+          <li>
+            Click <KeyTag>Export</KeyTag> on the command bar →{' '}
+            <KeyTag>Export to CSV</KeyTag> (preferred) or <KeyTag>Export to Excel</KeyTag>.
+          </li>
+          <li>
+            Save the resulting <KeyTag>.csv</KeyTag> or <KeyTag>.xlsx</KeyTag> file locally.
+          </li>
+          <li>Repeat for each library you want to import.</li>
+          <li>
+            Click <span className="font-medium">Choose CSV or Excel files</span> below and select all
+            saved files at once. Each file becomes one library inside Folder view.
+          </li>
+        </ol>
+      )}
+    </div>
+  );
+}
+
+function KeyTag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="font-mono bg-ink-100/60 dark:bg-ink-900/40 px-1 rounded text-[11px]">
+      {children}
+    </span>
+  );
+}
+
+function LibraryPreviewCard({
+  lib,
+  onRename,
+  onRemove,
+}: {
+  lib: ParsedLibrary;
+  onRename: (name: string) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-ink-200 dark:border-ink-800 px-4 py-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <FileSpreadsheet className="h-3.5 w-3.5 text-ink-400 shrink-0" />
+          <input
+            value={lib.libraryName}
+            onChange={(e) => onRename(e.target.value)}
+            className="flex-1 min-w-0 text-sm font-medium bg-transparent border-b border-transparent hover:border-ink-300 dark:hover:border-ink-700 focus:border-mint-400 outline-none transition-colors"
+          />
+          <span className="text-[10px] text-ink-400 font-mono shrink-0 truncate max-w-[180px]">
+            {lib.fileName}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove"
+          className="text-ink-400 hover:text-rose-400 transition-colors shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+        <StatCell label="Rows" value={String(lib.rows.length)} />
+        <StatCell label="Custom columns" value={String(lib.customColumns.length)} />
+        <StatCell label="Path column" value={lib.pathColumn || '(missing)'} />
+        <StatCell label="Name column" value={lib.nameColumn || '(missing)'} />
+      </div>
+
+      {lib.warnings.length > 0 && (
+        <div className="rounded border border-amber-400/40 bg-amber-500/5 px-2 py-1 text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+          {lib.warnings.join(' · ')}
+        </div>
+      )}
+
+      {lib.customColumns.length > 0 && (
+        <div className="text-[10px] text-ink-500 dark:text-ink-400 leading-relaxed">
+          <span className="font-medium">Custom columns: </span>
+          {lib.customColumns.slice(0, 8).map((c) => (
+            <span
+              key={c}
+              className="inline-block bg-ink-100/60 dark:bg-ink-900/40 rounded px-1.5 py-0.5 mr-1 mb-1 font-mono"
+            >
+              {c}
+            </span>
+          ))}
+          {lib.customColumns.length > 8 && (
+            <span className="ml-1">+{lib.customColumns.length - 8} more</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[9px] uppercase tracking-[0.16em] text-ink-400">{label}</div>
+      <div className="font-mono truncate text-[11px]">{value}</div>
     </div>
   );
 }
