@@ -133,7 +133,13 @@ Configurable from the Settings page (daily, hourly, cron, or manual-only). The b
 
 ## Status
 
-This is a working PoC. It is *not* connected to any production Collibra tenant or SharePoint site by default — the demo data ships with the repository so the UI can be reviewed in isolation. SharePoint Folder view integration (Microsoft Graph and manual CSV paths) is under active development.
+This is a working PoC. It is *not* connected to any production Collibra tenant or SharePoint site by default — the demo data ships with the repository so the UI can be reviewed in isolation.
+
+**Folder view SharePoint integration** ships with all three sources fully wired in the UI:
+
+- **Collibra-mapped** — read-only, surfaces existing catalog data.
+- **Manual Excel/CSV** — read + write, no admin approval required. End-to-end usable today.
+- **Microsoft Graph PowerShell** — read + write, requires an Entra ID app registration (Public Client, Delegated `Sites.Read.All` + `Sites.ReadWrite.All`). UI and generated scripts are complete; first real-tenant validation is gated on that registration.
 
 ## Licence
 
