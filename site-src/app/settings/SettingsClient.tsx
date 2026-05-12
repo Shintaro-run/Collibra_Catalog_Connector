@@ -18,6 +18,7 @@ import {
   Database,
   Download,
   RotateCcw,
+  Copy,
 } from 'lucide-react';
 import {
   FOLDER_UPDATE_EVENT,
@@ -50,6 +51,7 @@ import {
   renderWriteBackCsv,
   type BaselineSnapshot,
 } from '@/lib/sharepointDiff';
+import { generatePowerShellScript, parseGraphImportJson } from '@/lib/graphImportScript';
 
 type DomainSummary = {
   id: string;
@@ -175,6 +177,10 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
   const [importDone, setImportDone] = useState(false);
   const [showExportHelp, setShowExportHelp] = useState(false);
 
+  const [graphImportError, setGraphImportError] = useState<string | null>(null);
+  const [graphImportDone, setGraphImportDone] = useState(false);
+  const [scriptCopied, setScriptCopied] = useState(false);
+
   const [baseline, setBaseline] = useState<BaselineSnapshot | null>(null);
   const [currentTree, setCurrentTree] = useState<TreeNode | null>(null);
   const [currentColumns, setCurrentColumns] = useState<ColumnDef[]>([]);
@@ -195,6 +201,15 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
       window.removeEventListener('storage', refresh);
     };
   }, []);
+
+  const graphScript = useMemo(() => {
+    if (!graphSiteUrl.trim() || !graphTenantId.trim() || !graphClientId.trim()) return null;
+    return generatePowerShellScript({
+      tenantId: graphTenantId,
+      clientId: graphClientId,
+      siteUrl: graphSiteUrl,
+    });
+  }, [graphSiteUrl, graphTenantId, graphClientId]);
 
   const writeBackDiff = useMemo(() => {
     if (!baseline) return null;
@@ -295,6 +310,52 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
     setPickedLibraries([]);
     setPickError(null);
     setImportDone(false);
+  };
+
+  const handleScriptCopy = async () => {
+    if (!graphScript) return;
+    try {
+      await navigator.clipboard.writeText(graphScript);
+      setScriptCopied(true);
+      window.setTimeout(() => setScriptCopied(false), 1800);
+    } catch {
+      // Clipboard API may be unavailable; user can still use Download.
+    }
+  };
+
+  const handleScriptDownload = () => {
+    if (!graphScript) return;
+    downloadFile(graphScript, 'data-magazine-import.ps1', 'text/plain;charset=utf-8');
+  };
+
+  const handleGraphJsonImport = async (file: File) => {
+    setGraphImportError(null);
+    setGraphImportDone(false);
+    try {
+      const text = await file.text();
+      const parsed = parseGraphImportJson(text);
+      saveTree(parsed.tree);
+      saveColumns(parsed.columns);
+      saveAllMeta(parsed.meta);
+      saveHistory({
+        current: {
+          source: 'graph-ps',
+          importedAt: parsed.generatedAt,
+          libraryCount: parsed.stats.libraryCount,
+          folderCount: parsed.stats.folderCount,
+          fileCount: parsed.stats.fileCount,
+        },
+        baseline: {
+          tree: [parsed.tree],
+          columns: parsed.columns,
+          meta: parsed.meta,
+        },
+      });
+      setGraphImportDone(true);
+      window.setTimeout(() => setGraphImportDone(false), 4000);
+    } catch (err) {
+      setGraphImportError(err instanceof Error ? err.message : String(err));
+    }
   };
 
   const handleDownloadCsv = () => {
@@ -579,9 +640,90 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
                 className={`${inputClass} font-mono`}
               />
             </Row>
-            <div className="rounded-lg border border-amber-400/40 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-200 leading-relaxed">
-              Script generation, JSON import, and write-back land in upcoming phases.
-            </div>
+
+            {graphScript ? (
+              <>
+                <div className="rounded-lg border border-ink-200 dark:border-ink-800 overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-ink-200 dark:border-ink-800 bg-ink-50/40 dark:bg-ink-900/40">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-500">
+                      PowerShell script
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleScriptCopy}
+                        className="inline-flex items-center gap-1 rounded-md border border-ink-200 dark:border-ink-800 px-2 py-1 text-[10px] hover:border-mint-400 hover:text-mint-500 transition-colors"
+                      >
+                        {scriptCopied ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                        {scriptCopied ? 'Copied' : 'Copy'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleScriptDownload}
+                        className="inline-flex items-center gap-1 rounded-md border border-ink-200 dark:border-ink-800 px-2 py-1 text-[10px] hover:border-mint-400 hover:text-mint-500 transition-colors"
+                      >
+                        <Download className="h-3 w-3" />
+                        Download .ps1
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    readOnly
+                    value={graphScript}
+                    className="w-full h-72 bg-ink-50/30 dark:bg-ink-950/40 px-3 py-2 text-[11px] font-mono whitespace-pre resize-y outline-none"
+                  />
+                </div>
+                <p className="text-[11px] text-ink-500 dark:text-ink-400 leading-relaxed">
+                  Copy or download the script, run it in PowerShell (a browser will open for
+                  sign-in), then come back here and import the generated{' '}
+                  <span className="font-mono">data-magazine-import.json</span>.
+                </p>
+
+                <div className="rounded-lg border border-dashed border-ink-300 dark:border-ink-700 px-4 py-4 text-center">
+                  <Upload className="mx-auto h-5 w-5 text-ink-400 mb-1.5" />
+                  <label className="text-sm cursor-pointer inline-block">
+                    <input
+                      type="file"
+                      accept=".json,application/json"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleGraphJsonImport(f);
+                        e.target.value = '';
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="font-medium text-mint-500 hover:underline">
+                      Import JSON output
+                    </span>
+                    <span className="text-ink-400">
+                      {' '}
+                      — select data-magazine-import.json
+                    </span>
+                  </label>
+                </div>
+
+                {graphImportError && (
+                  <div className="rounded-lg border border-rose-400/40 bg-rose-500/5 px-3 py-2 text-[11px] text-rose-600 dark:text-rose-300 inline-flex items-start gap-2">
+                    <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <span>{graphImportError}</span>
+                  </div>
+                )}
+                {graphImportDone && (
+                  <div className="rounded-lg border border-mint-500/40 bg-mint-500/5 px-3 py-2 text-[11px] text-mint-600 dark:text-mint-300 inline-flex items-center gap-2">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Import complete — Folder view updated.
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-lg border border-dashed border-ink-200 dark:border-ink-800 px-4 py-3 text-[11px] text-ink-500 dark:text-ink-400">
+                Fill in all three fields above to generate the PowerShell script.
+              </div>
+            )}
           </>
         )}
         {sourceKind === 'manual-csv' && (
