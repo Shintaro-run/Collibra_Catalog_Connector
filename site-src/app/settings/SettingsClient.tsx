@@ -54,13 +54,6 @@ import {
 import { generatePowerShellScript, parseGraphImportJson } from '@/lib/graphImportScript';
 import { prepareWriteBack } from '@/lib/graphWriteBackScript';
 
-type DomainSummary = {
-  id: string;
-  name: string;
-  domainType: string;
-  assetCount: number;
-};
-
 type SettingsState = {
   collibra: {
     baseUrl: string;
@@ -80,13 +73,6 @@ type SettingsState = {
     timeOfDay: string;
     cron: string;
     timezone: string;
-  };
-  filters: {
-    selectedDomainIds: string[];
-    assetTypes: string[];
-    maxAssetsPerDomain: number;
-    onlyApproved: boolean;
-    onlyCertified: boolean;
   };
 };
 
@@ -110,13 +96,6 @@ const DEFAULT_STATE: SettingsState = {
     cron: '0 3 * * *',
     timezone: 'Asia/Tokyo',
   },
-  filters: {
-    selectedDomainIds: [],
-    assetTypes: ['Table', 'Business Term', 'Data Set', 'Report'],
-    maxAssetsPerDomain: 500,
-    onlyApproved: false,
-    onlyCertified: false,
-  },
 };
 
 const STORAGE_KEY = 'dm-settings';
@@ -137,17 +116,6 @@ const SOURCE_OPTIONS: { kind: SourceKind; label: string; desc: string }[] = [
     desc: 'No admin approval needed. Use SharePoint’s built-in "Export to Excel/CSV" and import the file. Write-back generates a CSV plus Quick Edit instructions.',
   },
 ];
-const ASSET_TYPE_CHOICES = [
-  'Table',
-  'Column',
-  'Database',
-  'Schema',
-  'Business Term',
-  'Code Set',
-  'Data Set',
-  'Report',
-  'Dashboard',
-];
 const TIMEZONES = [
   'Asia/Tokyo',
   'Europe/London',
@@ -157,7 +125,7 @@ const TIMEZONES = [
   'UTC',
 ];
 
-export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
+export function SettingsClient() {
   const [state, setState] = useState<SettingsState>(DEFAULT_STATE);
   const [saved, setSaved] = useState(false);
   const [showSecrets, setShowSecrets] = useState({ collibra: false, entra: false });
@@ -480,42 +448,26 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
     value: SettingsState['schedule'][K],
   ) => setState((s) => ({ ...s, schedule: { ...s.schedule, [key]: value } }));
 
-  const updateFilters = <K extends keyof SettingsState['filters']>(
-    key: K,
-    value: SettingsState['filters'][K],
-  ) => setState((s) => ({ ...s, filters: { ...s.filters, [key]: value } }));
-
-  const toggleDomain = (id: string) => {
-    setState((s) => {
-      const sel = new Set(s.filters.selectedDomainIds);
-      if (sel.has(id)) sel.delete(id);
-      else sel.add(id);
-      return { ...s, filters: { ...s.filters, selectedDomainIds: [...sel] } };
-    });
-  };
-
-  const toggleAssetType = (t: string) => {
-    setState((s) => {
-      const sel = new Set(s.filters.assetTypes);
-      if (sel.has(t)) sel.delete(t);
-      else sel.add(t);
-      return { ...s, filters: { ...s.filters, assetTypes: [...sel] } };
-    });
-  };
-
   return (
     <div className="space-y-8 max-w-4xl">
       <header className="space-y-2">
         <div className="text-[11px] uppercase tracking-[0.18em] text-mint-500">Configuration</div>
         <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
         <p className="text-ink-500 dark:text-ink-400 text-sm leading-relaxed max-w-2xl">
-          Connection parameters, sync schedule, and content filters. Settings are stored in your
-          browser only — values entered here are not transmitted from this page.
+          Connection parameters and sync schedule. Settings are stored in your browser only —
+          values entered here are not transmitted from this page.
         </p>
       </header>
 
+      <div className="space-y-4">
+        <GroupHeader
+          icon={Database}
+          title="Data acquisition"
+          description="Where the catalog reads its source data. Configure whichever paths you have access to — multiple sources can be set up at once."
+        />
+
       <Section
-        title="Collibra connection"
+        title="Collibra · API"
         description="OAuth 2.0 Client Credentials. Register an Integration-type application in Collibra (Settings → Manage OAuth applications) to obtain a Client ID and Client Secret."
       >
         <Row label="Base URL" hint="Your Collibra instance URL, no trailing slash.">
@@ -564,7 +516,7 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
       </Section>
 
       <Section
-        title="Collibra manual XLSX import"
+        title="Collibra · Manual (XLSX)"
         description="Alternative ingest path for environments where the Python connector cannot reach Collibra directly (no outbound API allowed, no GitHub Actions, etc.). In Collibra, configure a view with the columns you want to publish, export it as XLSX, then run the conversion tool on any PC with Python 3.12+ to produce catalog.json. Drop the result into site-src/public/ and rebuild."
       >
         <Row
@@ -602,97 +554,13 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
       </Section>
 
       <Section
-        title="Microsoft Entra ID + SharePoint"
-        description="Required for publishing the catalog site to a SharePoint document library. Register an app in Entra ID (Microsoft Graph: Sites.ReadWrite.All, Application permission) with admin consent."
+        title="SharePoint · API (Graph PowerShell)"
+        description="Direct read/write to a SharePoint document library via Microsoft Graph, using a self-contained PowerShell script and the OAuth 2.0 device code flow (no Client Secret). Requires a Public Client app registration in Entra ID with delegated Sites.Read.All and Sites.ReadWrite.All. Used as a Folder view source."
       >
-        <Row label="Tenant ID">
-          <input
-            value={state.entra.tenantId}
-            onChange={(e) => updateEntra('tenantId', e.target.value)}
-            placeholder="00000000-0000-0000-0000-000000000000"
-            className={`${inputClass} font-mono`}
-          />
-        </Row>
-        <Row label="Client ID">
-          <input
-            value={state.entra.clientId}
-            onChange={(e) => updateEntra('clientId', e.target.value)}
-            placeholder="00000000-0000-0000-0000-000000000000"
-            className={`${inputClass} font-mono`}
-          />
-        </Row>
-        <Row label="Client Secret">
-          <SecretInput
-            value={state.entra.clientSecret}
-            onChange={(v) => updateEntra('clientSecret', v)}
-            visible={showSecrets.entra}
-            onToggle={() => setShowSecrets((s) => ({ ...s, entra: !s.entra }))}
-          />
-        </Row>
-        <Row label="SharePoint site URL" hint="The site collection that will host the catalog.">
-          <input
-            value={state.entra.sharepointSiteUrl}
-            onChange={(e) => updateEntra('sharepointSiteUrl', e.target.value)}
-            placeholder="https://yourcompany.sharepoint.com/sites/data-catalog"
-            className={inputClass}
-          />
-        </Row>
-        <Row label="Document library">
-          <input
-            value={state.entra.documentLibrary}
-            onChange={(e) => updateEntra('documentLibrary', e.target.value)}
-            placeholder="Data Magazine"
-            className={inputClass}
-          />
-        </Row>
-        <TestRow
-          state={testing.entra}
-          onTest={() => handleTest('entra')}
-          label="Test SharePoint connection"
-        />
-      </Section>
-
-      <Section
-        title="Folder view data source"
-        description="Choose where the Folder view loads its multi-level folders and per-file custom columns from. Switching this does not affect the rest of the catalog."
-      >
-        <Row label="Source">
-          <div className="space-y-2">
-            {SOURCE_OPTIONS.map((opt) => {
-              const active = sourceKind === opt.kind;
-              return (
-                <label
-                  key={opt.kind}
-                  className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors ${
-                    active
-                      ? 'border-mint-500 bg-mint-500/5'
-                      : 'border-ink-200 dark:border-ink-800 hover:border-mint-400'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="folder-source"
-                    checked={active}
-                    onChange={() => setSourceKind(opt.kind)}
-                    className="mt-1 accent-mint-500"
-                  />
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium">{opt.label}</div>
-                    <div className="text-[11px] text-ink-500 dark:text-ink-400 leading-relaxed">
-                      {opt.desc}
-                    </div>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-        </Row>
-        {sourceKind === 'graph-ps' && (
-          <>
-            <Row
-              label="SharePoint site URL"
-              hint="All document libraries under this site will be auto-enumerated."
-            >
+        <Row
+          label="SharePoint site URL"
+          hint="All document libraries under this site will be auto-enumerated."
+        >
               <input
                 value={graphSiteUrl}
                 onChange={(e) => setGraphSiteUrl(e.target.value)}
@@ -884,10 +752,13 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
                 Fill in all three fields above to generate the PowerShell script.
               </div>
             )}
-          </>
-        )}
-        {sourceKind === 'manual-csv' && (
-          <div className="space-y-3">
+      </Section>
+
+      <Section
+        title="SharePoint · Manual (Excel/CSV)"
+        description="Read/write using SharePoint's built-in Export to Excel / Export to CSV (no admin approval required). Drop the exported files in here to import; write-back generates a CSV plus step-by-step Quick Edit instructions. Used as a Folder view source."
+      >
+        <div className="space-y-3">
             <ExportHelpBlock
               open={showExportHelp}
               onToggle={() => setShowExportHelp((v) => !v)}
@@ -1009,9 +880,117 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
               </div>
             )}
           </div>
-        )}
       </Section>
+      </div>
 
+      <div className="space-y-4">
+        <GroupHeader
+          icon={Eye}
+          title="Folder view display"
+          description="Which acquired source the Folder view page renders. This is a display switch only — it does not configure or trigger data acquisition above."
+        />
+        <Section
+          title="Display source"
+          description="Pick which source to render in Folder view. Setup for each source lives under Data acquisition above."
+        >
+          <Row label="Source">
+            <div className="space-y-2">
+              {SOURCE_OPTIONS.map((opt) => {
+                const active = sourceKind === opt.kind;
+                return (
+                  <label
+                    key={opt.kind}
+                    className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors ${
+                      active
+                        ? 'border-mint-500 bg-mint-500/5'
+                        : 'border-ink-200 dark:border-ink-800 hover:border-mint-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="folder-source"
+                      checked={active}
+                      onChange={() => setSourceKind(opt.kind)}
+                      className="mt-1 accent-mint-500"
+                    />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium">{opt.label}</div>
+                      <div className="text-[11px] text-ink-500 dark:text-ink-400 leading-relaxed">
+                        {opt.desc}
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </Row>
+        </Section>
+      </div>
+
+      <div className="space-y-4">
+        <GroupHeader
+          icon={Upload}
+          title="Site publishing"
+          description="Auth for uploading the built static site to a SharePoint document library. Only needed if you want CI to push the site automatically — manual drag-and-drop into SharePoint never touches these settings."
+        />
+        <Section
+          title="SharePoint upload target (Microsoft Entra ID)"
+          description="Register an app in Entra ID (Microsoft Graph: Sites.ReadWrite.All, Application permission) with admin consent. This is a separate registration from the device-code app used by the SharePoint · API source above."
+        >
+          <Row label="Tenant ID">
+            <input
+              value={state.entra.tenantId}
+              onChange={(e) => updateEntra('tenantId', e.target.value)}
+              placeholder="00000000-0000-0000-0000-000000000000"
+              className={`${inputClass} font-mono`}
+            />
+          </Row>
+          <Row label="Client ID">
+            <input
+              value={state.entra.clientId}
+              onChange={(e) => updateEntra('clientId', e.target.value)}
+              placeholder="00000000-0000-0000-0000-000000000000"
+              className={`${inputClass} font-mono`}
+            />
+          </Row>
+          <Row label="Client Secret">
+            <SecretInput
+              value={state.entra.clientSecret}
+              onChange={(v) => updateEntra('clientSecret', v)}
+              visible={showSecrets.entra}
+              onToggle={() => setShowSecrets((s) => ({ ...s, entra: !s.entra }))}
+            />
+          </Row>
+          <Row label="SharePoint site URL" hint="The site collection that will host the catalog.">
+            <input
+              value={state.entra.sharepointSiteUrl}
+              onChange={(e) => updateEntra('sharepointSiteUrl', e.target.value)}
+              placeholder="https://yourcompany.sharepoint.com/sites/data-catalog"
+              className={inputClass}
+            />
+          </Row>
+          <Row label="Document library">
+            <input
+              value={state.entra.documentLibrary}
+              onChange={(e) => updateEntra('documentLibrary', e.target.value)}
+              placeholder="Data Magazine"
+              className={inputClass}
+            />
+          </Row>
+          <TestRow
+            state={testing.entra}
+            onTest={() => handleTest('entra')}
+            label="Test SharePoint connection"
+          />
+        </Section>
+      </div>
+
+      <div className="space-y-4">
+        <GroupHeader
+          icon={RefreshCw}
+          title="Synchronization"
+          description="When the Collibra connector should refresh the catalog. Manual runs are always available regardless of this setting."
+        />
       <Section
         title="Sync schedule"
         description="When the connector should pull from Collibra and refresh SharePoint. Manual runs are always available regardless of this setting."
@@ -1078,95 +1057,7 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
           </button>
         </Row>
       </Section>
-
-      <Section
-        title="Catalog filters"
-        description="Limit which Collibra domains and asset types are pulled into the published catalog. Empty domain selection means all domains are included."
-      >
-        <Row label="Domains" hint={`${state.filters.selectedDomainIds.length} selected (empty = all)`}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            {domains.map((d) => {
-              const checked = state.filters.selectedDomainIds.includes(d.id);
-              return (
-                <label
-                  key={d.id}
-                  className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 cursor-pointer transition-colors ${
-                    checked
-                      ? 'border-mint-500/50 bg-mint-500/5'
-                      : 'border-ink-200 dark:border-ink-800 hover:border-mint-400'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleDomain(d.id)}
-                      className="accent-mint-500"
-                    />
-                    <span className="text-sm truncate">{d.name}</span>
-                  </div>
-                  <span className="text-[10px] text-ink-400 tabular-nums">{d.assetCount}</span>
-                </label>
-              );
-            })}
-          </div>
-        </Row>
-        <Row label="Asset types">
-          <div className="flex flex-wrap gap-1.5">
-            {ASSET_TYPE_CHOICES.map((t) => {
-              const active = state.filters.assetTypes.includes(t);
-              return (
-                <button
-                  key={t}
-                  onClick={() => toggleAssetType(t)}
-                  className={`rounded-md px-2 py-1 text-[11px] transition-colors ${
-                    active
-                      ? 'bg-mint-500/15 text-mint-500 ring-1 ring-mint-500/40'
-                      : 'bg-ink-100/60 dark:bg-ink-900/40 text-ink-500 hover:text-mint-500'
-                  }`}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-        </Row>
-        <Row label="Max assets per domain">
-          <input
-            type="number"
-            min={10}
-            max={10000}
-            step={10}
-            value={state.filters.maxAssetsPerDomain}
-            onChange={(e) =>
-              updateFilters('maxAssetsPerDomain', Number(e.target.value))
-            }
-            className={`${inputClass} w-32`}
-          />
-        </Row>
-        <Row label="Quality gates">
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={state.filters.onlyApproved}
-                onChange={(e) => updateFilters('onlyApproved', e.target.checked)}
-                className="accent-mint-500"
-              />
-              Only publish assets with status <span className="font-medium">Approved</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={state.filters.onlyCertified}
-                onChange={(e) => updateFilters('onlyCertified', e.target.checked)}
-                className="accent-mint-500"
-              />
-              Only publish certified assets
-            </label>
-          </div>
-        </Row>
-      </Section>
+      </div>
 
       <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-ink-200 dark:border-ink-800 bg-[color-mix(in_oklab,var(--bg)_85%,transparent)] backdrop-blur px-5 py-3">
         <div className="text-xs text-ink-400">
@@ -1217,7 +1108,7 @@ function Section({
   return (
     <section className="rounded-2xl border border-ink-200 dark:border-ink-800 px-6 py-5 space-y-4">
       <div>
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+        <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
         {description && (
           <p className="text-xs text-ink-500 dark:text-ink-400 mt-1 leading-relaxed">
             {description}
@@ -1226,6 +1117,32 @@ function Section({
       </div>
       <div className="space-y-3">{children}</div>
     </section>
+  );
+}
+
+function GroupHeader({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 pt-1">
+      <div className="rounded-lg bg-mint-500/10 text-mint-500 p-2 mt-0.5">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="flex-1">
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+        {description && (
+          <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5 leading-relaxed">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 
