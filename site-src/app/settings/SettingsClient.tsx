@@ -564,6 +564,44 @@ export function SettingsClient({ domains }: { domains: DomainSummary[] }) {
       </Section>
 
       <Section
+        title="Collibra manual XLSX import"
+        description="Alternative ingest path for environments where the Python connector cannot reach Collibra directly (no outbound API allowed, no GitHub Actions, etc.). In Collibra, configure a view with the columns you want to publish, export it as XLSX, then run the conversion tool on any PC with Python 3.12+ to produce catalog.json. Drop the result into site-src/public/ and rebuild."
+      >
+        <Row
+          label="Workflow"
+          hint="Three steps, all offline after the export."
+        >
+          <ol className="text-xs leading-relaxed text-ink-500 dark:text-ink-400 list-decimal pl-4 space-y-1">
+            <li>Collibra UI → configure a view with the asset attributes you want → Export as XLSX.</li>
+            <li>Run the conversion tool locally: <code className="font-mono text-[11px]">python scripts/from_collibra_xlsx.py path/to/export.xlsx</code></li>
+            <li>The tool writes <code className="font-mono text-[11px]">site-src/public/catalog.json</code>. Run <code className="font-mono text-[11px]">npm run build</code> and upload the <code className="font-mono text-[11px]">site-src/out/</code> contents to SharePoint.</li>
+          </ol>
+        </Row>
+        <Row
+          label="Conversion tool"
+          hint="Python 3.12+ required. Internet access not needed."
+        >
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              disabled
+              title="Not yet available — pending a real Collibra XLSX export sample to lock the column mapping."
+              className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 dark:border-ink-800 px-3 py-1.5 text-xs text-ink-400 cursor-not-allowed w-fit"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download from_collibra_xlsx.py
+            </button>
+            <p className="inline-flex items-start gap-1.5 text-[11px] text-amber-500 leading-relaxed max-w-xl">
+              <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+              <span>
+                Not yet released. Collibra XLSX exports have no fixed schema — columns reflect whichever view was exported. The converter will ship once a real export sample from this tenant is available, so the column-name mapping can be validated against actual data rather than guessed.
+              </span>
+            </p>
+          </div>
+        </Row>
+      </Section>
+
+      <Section
         title="Microsoft Entra ID + SharePoint"
         description="Required for publishing the catalog site to a SharePoint document library. Register an app in Entra ID (Microsoft Graph: Sites.ReadWrite.All, Application permission) with admin consent."
       >
